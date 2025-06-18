@@ -67,6 +67,8 @@ const Agenda = () => {
               day: "Día",
               list: "Lista",
             }}
+            slotMinTime="08:00:00"
+            slotMaxTime="18:00:00"
           />
         </Card.Body>
       </Card>
