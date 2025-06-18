@@ -1,4 +1,18 @@
+/* Variables por defecto (dark) */
 :root {
+  --color-bg: #181a1b;
+  --color-bg-secondary: #23272b;
+  --color-text: #f8f9fa;
+  --color-primary: #0d6efd;
+  --color-card: #23272b;
+  --color-border: #343a40;
+  --color-table-header: #23272b;
+  --color-table-row: #181a1b;
+  --color-input-bg: #23272b;
+  --color-modal-bg: #23272b;
+  --color-dropdown-bg: #23272b;
+  --color-sidebar-link: #f8f9fa;
+  --color-sidebar-btn: #f8f9fa;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -13,13 +27,44 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+body.theme-dark {
+  --color-bg: #181a1b;
+  --color-bg-secondary: #23272b;
+  --color-text: #f8f9fa;
+  --color-primary: #0d6efd;
+  --color-card: #23272b;
+  --color-border: #343a40;
+  --color-table-header: #23272b;
+  --color-table-row: #181a1b;
+  --color-input-bg: #23272b;
+  --color-modal-bg: #23272b;
+  --color-dropdown-bg: #23272b;
+  --color-sidebar-link: #f8f9fa;
+  --color-sidebar-btn: #f8f9fa;
+  --color-sidebar-link-hover-bg: #fff;
+  --color-sidebar-link-hover-text: #181a1b;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
-a:hover {
-  color: #535bf2;
+
+body.theme-light {
+  --color-bg: #f8f9fa;
+  --color-bg-secondary: #f1f3f5;
+  --color-text: #181a1b;
+  --color-primary: #0d6efd;
+  --color-card: #fff;
+  --color-border: #dee2e6;
+  --color-table-header: #f1f3f5;
+  --color-table-row: #fff;
+  --color-input-bg: #fff;
+  --color-modal-bg: #fff;
+  --color-dropdown-bg: #fff;
+  --color-sidebar-link: #23272b;
+  --color-sidebar-btn: #23272b;
+  --color-sidebar-link-hover-bg: #181a1b;
+  --color-sidebar-link-hover-text: #fff;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 body {
@@ -28,6 +73,9 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background 0.2s, color 0.2s;
 }
 
 h1 {
@@ -64,5 +112,95 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+/* Ejemplo de uso de variables en componentes */
+.card, .bg-white, .bg-light {
+  background: var(--color-card) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.table {
+  color: var(--color-text);
+  background: var(--color-card);
+}
+
+.table th {
+  background: var(--color-table-header) !important;
+  color: var(--color-text) !important;
+}
+
+.table td {
+  background: var(--color-table-row) !important;
+  color: var(--color-text) !important;
+}
+
+.table th, .table td {
+  border-color: var(--color-border) !important;
+}
+
+.form-control, .form-select {
+  background: var(--color-input-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.form-control:focus, .form-select:focus {
+  background: var(--color-input-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
+}
+
+.modal-content, .offcanvas, .dropdown-menu {
+  background: var(--color-modal-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+::-webkit-input-placeholder { color: var(--color-text); opacity: 0.7; }
+::-moz-placeholder { color: var(--color-text); opacity: 0.7; }
+:-ms-input-placeholder { color: var(--color-text); opacity: 0.7; }
+::placeholder { color: var(--color-text); opacity: 0.7; }
+
+/* Bordes y detalles */
+hr, .border, .border-top, .border-bottom, .border-start, .border-end {
+  border-color: var(--color-border) !important;
+}
+
+.sidebar-link, .sidebar-link:visited {
+  color: var(--color-sidebar-link) !important;
+}
+
+.sidebar-link.active, .sidebar-link:hover {
+  color: var(--color-sidebar-link-hover-text) !important;
+  background: var(--color-sidebar-link-hover-bg) !important;
+}
+
+.sidebar-theme-btn {
+  color: var(--color-sidebar-btn) !important;
+  border-color: var(--color-sidebar-btn) !important;
+  background: transparent !important;
+}
+
+.sidebar-theme-btn:hover {
+  background: var(--color-sidebar-link-hover-bg) !important;
+  color: var(--color-sidebar-link-hover-text) !important;
+  border-color: var(--color-sidebar-link-hover-bg) !important;
+}
+
+/* Mejoras visuales para FullCalendar en mobile */
+.fc .fc-toolbar-title {
+  font-size: 1.1rem;
+}
+@media (max-width: 768px) {
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .fc .fc-toolbar-chunk {
+    margin-bottom: 0.5rem;
   }
 }
