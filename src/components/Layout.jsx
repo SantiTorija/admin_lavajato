@@ -1,11 +1,20 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { Navbar, Container, Button } from "react-bootstrap";
-import { FaBell, FaUserCircle, FaInfoCircle, FaBars } from "react-icons/fa";
+import {
+  FaBell,
+  FaUserCircle,
+  FaInfoCircle,
+  FaBars,
+  FaSun,
+  FaMoon,
+} from "react-icons/fa";
 import { useState } from "react";
+import { useTheme } from "../context/ThemeContext";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // Detectar si es móvil
   const isMobile = typeof window !== "undefined" && window.innerWidth < 992;
@@ -58,6 +67,16 @@ const Layout = () => {
               <FaBars size={22} />
             </Button>
             <div className="d-flex align-items-center gap-3 ms-auto">
+              {/* Botón de tema solo en mobile */}
+              <Button
+                variant="link"
+                className="d-lg-none p-0"
+                style={{ color: "var(--color-text)", fontSize: 22 }}
+                onClick={toggleTheme}
+                aria-label="Cambiar tema"
+              >
+                {theme === "dark" ? <FaSun /> : <FaMoon />}
+              </Button>
               <FaUserCircle
                 size={26}
                 style={{ cursor: "pointer", color: "var(--color-text)" }}
