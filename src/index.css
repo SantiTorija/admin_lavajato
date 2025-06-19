@@ -13,6 +13,7 @@
   --color-dropdown-bg: #23272b;
   --color-sidebar-link: #f8f9fa;
   --color-sidebar-btn: #f8f9fa;
+  --color-title: #181a1b;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -43,6 +44,7 @@ body.theme-dark {
   --color-sidebar-btn: #f8f9fa;
   --color-sidebar-link-hover-bg: #fff;
   --color-sidebar-link-hover-text: #181a1b;
+  --color-title: #fff;
   background: var(--color-bg);
   color: var(--color-text);
 }
@@ -63,6 +65,7 @@ body.theme-light {
   --color-sidebar-btn: #23272b;
   --color-sidebar-link-hover-bg: #181a1b;
   --color-sidebar-link-hover-text: #fff;
+  --color-title: #181a1b;
   background: var(--color-bg);
   color: var(--color-text);
 }
@@ -78,9 +81,8 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-title) !important;
 }
 
 button {

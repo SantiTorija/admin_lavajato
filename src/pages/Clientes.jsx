@@ -16,7 +16,7 @@ const Clientes = () => {
   return (
     <Container fluid className="py-4">
       <div className="d-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-white">Clientes</h1>
+        <h1 className="h3 mb-0 ">Clientes</h1>
         <Button
           variant="outline-primary"
           onClick={refetch}
@@ -39,7 +39,6 @@ const Clientes = () => {
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Nombre</th>
                   <th>Apellido</th>
                   <th>Teléfono</th>
@@ -49,14 +48,13 @@ const Clientes = () => {
               <tbody>
                 {clients.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center">
+                    <td colSpan={4} className="text-center">
                       No hay clientes registrados
                     </td>
                   </tr>
                 ) : (
                   clients.map((cliente) => (
                     <tr key={cliente.id}>
-                      <td>{cliente.id}</td>
                       <td>{cliente.firstname || "-"}</td>
                       <td>{cliente.lastname || "-"}</td>
                       <td>{cliente.telefono || cliente.phone || "-"}</td>

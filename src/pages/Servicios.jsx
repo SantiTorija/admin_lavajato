@@ -93,7 +93,7 @@ const Servicios = () => {
   return (
     <Container fluid className="py-4">
       <div className="d-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-white">Servicios</h1>
+        <h1 className="h3 mb-0 ">Servicios</h1>
         <div className="d-flex gap-2" style={{ minWidth: 240 }}>
           <Button
             variant="success"
