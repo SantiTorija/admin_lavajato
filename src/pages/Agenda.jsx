@@ -12,6 +12,13 @@ import axios from "axios";
 const Agenda = () => {
   const [events, setEvents] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchEvents = () => {
     axios
@@ -26,6 +33,18 @@ const Agenda = () => {
   useEffect(() => {
     fetchEvents();
   }, [refreshKey]);
+
+  const headerToolbar = isMobile
+    ? {
+        left: "prev,next today",
+        center: "title",
+        right: "timeGridWeek,timeGridDay",
+      }
+    : {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+      };
 
   return (
     <Container fluid className="py-4">
@@ -48,24 +67,21 @@ const Agenda = () => {
 
               bootstrap5Plugin,
             ]}
-            headerToolbar={{
-              left: window.innerWidth < 768 ? "prev,next" : "prev,next today",
-              center: "title",
-              right:
-                window.innerWidth < 768
-                  ? "listWeek"
-                  : "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
-            }}
+            headerToolbar={headerToolbar}
+            initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
             events={events}
             locale={esLocale}
             themeSystem="bootstrap5"
             height="auto"
+            allDaySlot={false}
             buttonText={{
               today: "Hoy",
               month: "Mes",
               week: "Semana",
               day: "Día",
               list: "Lista",
+              prev: "<",
+              next: ">",
             }}
             slotMinTime="08:00:00"
             slotMaxTime="18:00:00"

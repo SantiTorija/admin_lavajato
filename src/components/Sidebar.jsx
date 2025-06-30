@@ -100,16 +100,6 @@ const SidebarContent = ({ onClose }) => {
             {theme === "dark" ? "Modo claro" : "Modo oscuro"}
           </button>
         </Nav.Item>
-        <Nav.Item>
-          <Nav.Link
-            as={Link}
-            to="/logout"
-            className="d-flex align-items-center sidebar-link bg-transparent border-0"
-            onClick={onClose}
-          >
-            <FaSignOutAlt className="me-2" /> Cerrar sesión
-          </Nav.Link>
-        </Nav.Item>
       </Nav>
     </div>
   );

@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { Navbar, Container, Button } from "react-bootstrap";
+import { Navbar, Container, Button, Dropdown } from "react-bootstrap";
 import {
   FaBell,
   FaUserCircle,
@@ -8,16 +8,23 @@ import {
   FaBars,
   FaSun,
   FaMoon,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { useAuthRedux } from "../hooks/useAuthRedux";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuthRedux();
 
   // Detectar si es móvil
   const isMobile = typeof window !== "undefined" && window.innerWidth < 992;
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
@@ -77,10 +84,49 @@ const Layout = () => {
               >
                 {theme === "dark" ? <FaSun /> : <FaMoon />}
               </Button>
-              <FaUserCircle
-                size={26}
-                style={{ cursor: "pointer", color: "var(--color-text)" }}
-              />
+
+              {/* Dropdown del usuario */}
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  variant="link"
+                  className="p-0 d-flex align-items-center"
+                  style={{
+                    color: "var(--color-text)",
+                    textDecoration: "none",
+                    background: "transparent",
+                    border: "none",
+                  }}
+                >
+                  <FaUserCircle size={26} />
+                  <span className="ms-2 d-none d-md-inline">
+                    {user?.name || "Usuario"}
+                  </span>
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu
+                  style={{
+                    background: "var(--color-bg-secondary)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  <Dropdown.Header
+                    style={{ color: "var(--color-text)" }}
+                    className="fw-semibold"
+                  >
+                    {user?.email || "usuario@ejemplo.com"}
+                  </Dropdown.Header>
+                  <Dropdown.Divider />
+                  <Dropdown.Item
+                    onClick={handleLogout}
+                    style={{ color: "var(--color-text)" }}
+                    className="d-flex align-items-center gap-2"
+                  >
+                    <FaSignOutAlt />
+                    Cerrar sesión
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+
               <FaBell
                 size={22}
                 style={{ cursor: "pointer", color: "var(--color-text)" }}
@@ -90,7 +136,6 @@ const Layout = () => {
         </Navbar>
         <main
           style={{
-            padding: "32px 24px",
             background: "var(--color-bg)",
             minHeight: "calc(100vh - 64px)",
             marginLeft: 0,
