@@ -12,6 +12,10 @@ import {
 } from "react-bootstrap";
 import useFetchServicesData from "../hooks/useFetchServicesData";
 import { FaSyncAlt, FaPlus, FaEdit, FaCheck } from "react-icons/fa";
+import useUpdateServicePrice from "../hooks/useUpdateServicePrice";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import useUpdateService from "../hooks/useUpdateService";
 
 const Servicios = () => {
   const { services, carTypes, servicePrices, loading, error, refetch } =
@@ -24,6 +28,13 @@ const Servicios = () => {
   // Estado para edición inline de precios
   const [editingPriceId, setEditingPriceId] = useState(null);
   const [editingPriceValue, setEditingPriceValue] = useState("");
+  const { updateServicePrice } = useUpdateServicePrice();
+  const { updateService } = useUpdateService();
+  const [editingServiceId, setEditingServiceId] = useState(null);
+  const [editingServiceName, setEditingServiceName] = useState("");
+  const [editingServiceDescription, setEditingServiceDescription] =
+    useState("");
+  const [savingService, setSavingService] = useState(false);
 
   const handleAddService = () => {
     // Inicializar precios en blanco para cada carType
@@ -81,13 +92,18 @@ const Servicios = () => {
   const handleEditValueChange = (e) => {
     setEditingPriceValue(e.target.value);
   };
-  const handleEditSave = (priceId) => {
-    // Aquí deberías hacer el PATCH/PUT real al backend
-    setTimeout(() => {
-      setEditingPriceId(null);
-      setEditingPriceValue("");
-      refetch();
-    }, 800);
+  const handleEditSave = async (priceId) => {
+    // Buscar el objeto precio para obtener el valor actual
+    const precio = servicePrices.find((p) => p.id === priceId);
+    if (!precio) return;
+    await updateServicePrice({
+      id: priceId,
+      price: editingPriceValue,
+    });
+    setEditingPriceId(null);
+    setEditingPriceValue("");
+    refetch();
+    toast.success("Precio actualizado correctamente");
   };
 
   return (
@@ -132,6 +148,7 @@ const Servicios = () => {
               const precios = servicePrices.filter(
                 (sp) => sp.ServiceId === service.id
               );
+              const isEditingService = editingServiceId === service.id;
               return (
                 <Card key={service.id} style={{ width: "100%" }}>
                   <Card.Body>
@@ -145,15 +162,101 @@ const Servicios = () => {
                         style={{ width: "100%", padding: "1rem" }}
                         className="d-md-block d-flex flex-column align-items-start justify-content-center"
                       >
-                        <span
-                          className="fw-bold mb-2"
-                          style={{ fontSize: "1.1rem" }}
-                        >
-                          {service.name}
-                        </span>
-                        <span className="text-muted d-none d-md-block">
-                          {service.description || "-"}
-                        </span>
+                        {isEditingService ? (
+                          <>
+                            <Form.Control
+                              type="text"
+                              value={editingServiceName}
+                              onChange={(e) =>
+                                setEditingServiceName(e.target.value)
+                              }
+                              className="mb-2"
+                              style={{ fontWeight: "bold", fontSize: "1.1rem" }}
+                              isInvalid={editingServiceName.trim() === ""}
+                              placeholder="Nombre del servicio"
+                            />
+                            <Form.Control
+                              as="textarea"
+                              value={editingServiceDescription}
+                              onChange={(e) =>
+                                setEditingServiceDescription(e.target.value)
+                              }
+                              rows={2}
+                              className="mb-2"
+                              placeholder="Descripción"
+                            />
+                            <div className="d-flex gap-2">
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={async () => {
+                                  if (editingServiceName.trim() === "") return;
+                                  setSavingService(true);
+                                  await updateService({
+                                    id: service.id,
+                                    name: editingServiceName,
+                                    description: editingServiceDescription,
+                                  });
+                                  setSavingService(false);
+                                  setEditingServiceId(null);
+                                  toast.success(
+                                    "Servicio actualizado correctamente"
+                                  );
+                                  refetch();
+                                }}
+                                disabled={
+                                  editingServiceName.trim() === "" ||
+                                  savingService
+                                }
+                              >
+                                {savingService ? (
+                                  <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                  />
+                                ) : (
+                                  <FaCheck />
+                                )}
+                              </Button>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setEditingServiceId(null)}
+                                disabled={savingService}
+                              >
+                                Cancelar
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span
+                              className="fw-bold mb-2"
+                              style={{ fontSize: "1.1rem" }}
+                            >
+                              {service.name}
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                className="ms-2"
+                                onClick={() => {
+                                  setEditingServiceId(service.id);
+                                  setEditingServiceName(service.name);
+                                  setEditingServiceDescription(
+                                    service.description || ""
+                                  );
+                                }}
+                                title="Editar servicio"
+                              >
+                                <FaEdit />
+                              </Button>
+                            </span>
+                            <span className="text-muted d-none d-md-block">
+                              {service.description || "-"}
+                            </span>
+                          </>
+                        )}
                       </div>
                       {/* Derecha: tabla de precios */}
                       <div
@@ -353,6 +456,7 @@ const Servicios = () => {
           </Modal.Footer>
         </Form>
       </Modal>
+      <ToastContainer position="top-right" autoClose={2000} />
     </Container>
   );
 };
