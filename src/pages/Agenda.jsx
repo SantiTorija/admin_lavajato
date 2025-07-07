@@ -101,7 +101,8 @@ const Agenda = () => {
     if (!event) return {};
     const start = event.start;
     const end = event.end;
-    const detalle = event.extendedProps?.detalle || "";
+    const extendedProps = event.extendedProps || {};
+
     return {
       title: event.title,
       date: start ? start.toLocaleDateString() : "",
@@ -115,7 +116,12 @@ const Agenda = () => {
               minute: "2-digit",
             })}`
           : "",
-      detalle,
+      cliente: extendedProps.cliente || {},
+      vehiculo: extendedProps.vehiculo || {},
+      servicio: extendedProps.servicio || "",
+      tipoAuto: extendedProps.tipoAuto || "",
+      total: extendedProps.total || null,
+      orderId: extendedProps.orderId || null,
     };
   };
 
@@ -171,15 +177,56 @@ const Agenda = () => {
           <Modal.Title>{eventDetails.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            <strong>Fecha:</strong> {eventDetails.date}
-          </p>
-          <p>
-            <strong>Hora:</strong> {eventDetails.time}
-          </p>
-          <p>
-            <strong>Detalle:</strong> {eventDetails.detalle}
-          </p>
+          <div className="row">
+            <div className="col-12">
+              <h6 className="text-primary mb-3">Información del Cliente</h6>
+              <p>
+                <strong>Nombre:</strong> {eventDetails.cliente?.nombre || ""}{" "}
+                {eventDetails.cliente?.apellido || ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-12">
+              <h6 className="text-primary mb-3">Información del Vehículo</h6>
+              <p>
+                <strong>Marca:</strong> {eventDetails.vehiculo?.marca || ""}
+              </p>
+              <p>
+                <strong>Modelo:</strong> {eventDetails.vehiculo?.modelo || ""}
+              </p>
+              <p>
+                <strong>Tipo de Auto:</strong> {eventDetails.tipoAuto || ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-12">
+              <h6 className="text-primary mb-3">Información del Servicio</h6>
+              <p>
+                <strong>Servicio:</strong> {eventDetails.servicio || ""}
+              </p>
+              {eventDetails.total && (
+                <p>
+                  <strong>Total:</strong> ${eventDetails.total}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-12">
+              <h6 className="text-primary mb-3">Información de la Reserva</h6>
+              <p>
+                <strong>Fecha:</strong> {eventDetails.date || ""}
+              </p>
+              <p>
+                <strong>Hora:</strong> {eventDetails.time || ""}
+              </p>
+            </div>
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModal}>

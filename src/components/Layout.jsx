@@ -86,7 +86,7 @@ const Layout = () => {
               </Button>
 
               {/* Dropdown del usuario */}
-              <Dropdown align="end">
+              {/* <Dropdown align="end">
                 <Dropdown.Toggle
                   variant="link"
                   className="p-0 d-flex align-items-center"
@@ -125,7 +125,7 @@ const Layout = () => {
                     Cerrar sesión
                   </Dropdown.Item>
                 </Dropdown.Menu>
-              </Dropdown>
+              </Dropdown> */}
 
               <FaBell
                 size={22}
