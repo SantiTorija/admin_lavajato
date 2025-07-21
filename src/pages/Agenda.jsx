@@ -48,7 +48,6 @@ const Agenda = () => {
       .get(`${import.meta.env.VITE_API_URL}/day/availability/${year}/${month}`)
       .then((res) => {
         setDaysAvailability(res.data);
-        console.log("DAYS AVAILABILITY:", res.data);
       })
       .catch((err) => console.error(err));
   }, [refreshKey]);
@@ -57,7 +56,6 @@ const Agenda = () => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/day/calendar-events`)
       .then((res) => {
-        console.log("EVENTOS RECIBIDOS", res.data);
         setEvents(res.data);
       })
       .catch((err) => console.error(err));
@@ -297,43 +295,6 @@ const Agenda = () => {
   };
 
   const eventDetails = getEventDetails(selectedEvent);
-
-  // Debug: imprimir extendedProps cuando cambie
-  useEffect(() => {
-    if (selectedEvent) {
-      console.log("EVENT DETAILS:", eventDetails);
-      console.log("EXTENDED PROPS:", selectedEvent.extendedProps);
-      console.log("EVENT OBJECT:", selectedEvent);
-    }
-  }, [selectedEvent, eventDetails]);
-
-  // Debug: imprimir todos los eventos cuando se carguen
-  useEffect(() => {
-    console.log("TODOS LOS EVENTOS:", events);
-    events.forEach((event, index) => {
-      console.log(`Evento ${index}:`, event);
-      if (event.admin_created) {
-        console.log(`🎯 EVENTO ADMIN ENCONTRADO:`, event);
-      }
-      // Debug específico para el evento problemático
-      if (
-        event.title === "Santiago Torija" &&
-        event.start &&
-        event.start.includes("15:30")
-      ) {
-        console.log("🔍 EVENTO PROBLEMÁTICO DETECTADO:", {
-          id: event.id,
-          title: event.title,
-          start: event.start,
-          end: event.end,
-          startParsed: new Date(event.start),
-          endParsed: new Date(event.end),
-          startLocal: new Date(event.start).toLocaleString(),
-          endLocal: new Date(event.start).toLocaleString(),
-        });
-      }
-    });
-  }, [events]);
 
   // Obtener todos los días del mes actual
   const today = new Date();

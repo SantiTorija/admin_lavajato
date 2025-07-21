@@ -15,7 +15,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 import { useAuthRedux } from "../hooks/useAuthRedux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const SidebarContent = ({ onClose }) => {
   const location = useLocation();
@@ -40,7 +40,8 @@ const SidebarContent = ({ onClose }) => {
           className="fw-semibold mt-2"
           style={{ color: "var(--color-text)" }}
         >
-          {user?.name || "Usuario"}
+          {[user?.firstname, user?.lastname].filter(Boolean).join(" ") ||
+            "Usuario"}
         </span>
         <button
           className="btn btn-link p-0 mt-1 d-flex align-items-center gap-1"
