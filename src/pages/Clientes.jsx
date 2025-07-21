@@ -1,14 +1,7 @@
-import {
-  Table,
-  Card,
-  Container,
-  Badge,
-  Spinner,
-  Alert,
-  Button,
-} from "react-bootstrap";
+import { Table, Card, Container, Badge, Alert, Button } from "react-bootstrap";
 import useFetchClients from "../hooks/useFetchClients";
 import { FaSyncAlt, FaEdit, FaTrash } from "react-icons/fa";
+import Loader from "../components/Loader";
 
 const Clientes = () => {
   const { clients, loading, error, refetch } = useFetchClients();
@@ -29,11 +22,7 @@ const Clientes = () => {
       </div>
       <Card>
         <Card.Body>
-          {loading && (
-            <div className="text-center my-4">
-              <Spinner animation="border" variant="primary" /> Cargando...
-            </div>
-          )}
+          {loading && <Loader />}
           {error && <Alert variant="danger">Error al cargar clientes</Alert>}
           {!loading && !error && (
             <Table striped bordered hover responsive>

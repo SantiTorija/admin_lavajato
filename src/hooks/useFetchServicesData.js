@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const SERVICE_URL = `${import.meta.env.VITE_API_URL}/service`;
 const CARTYPE_URL = `${import.meta.env.VITE_API_URL}/car-type`;
@@ -11,17 +12,23 @@ export default function useFetchServicesData() {
   const [servicePrices, setServicePrices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const token = useSelector((state) => state.auth.token);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const [servicesRes, carTypesRes, servicePricesRes] = await Promise.all([
-        axios.get(SERVICE_URL),
-        axios.get(CARTYPE_URL),
-        axios.get(SERVICEPRICE_URL),
+        axios.get(SERVICE_URL, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(CARTYPE_URL, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(SERVICEPRICE_URL, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
-      console.log(servicesRes.data);
       setServices(servicesRes.data);
       setCarTypes(carTypesRes.data);
       setServicePrices(servicePricesRes.data);
@@ -33,7 +40,7 @@ export default function useFetchServicesData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     fetchAll();

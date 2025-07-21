@@ -10,6 +10,9 @@ import axios from "axios";
 import { FaEye } from "react-icons/fa";
 import useMarkSlotUnavailable from "../hooks/useMarkSlotUnavailable";
 import useMarkSlotAvailable from "../hooks/useMarkSlotAvailable";
+import useFetchDayAvailability from "../hooks/useFetchDayAvailability";
+import useFetchCalendarEvents from "../hooks/useFetchCalendarEvents";
+import Loader from "../components/Loader";
 
 // Definir los slots disponibles
 const availableSlots = [
@@ -20,8 +23,6 @@ const availableSlots = [
 ];
 
 const Agenda = () => {
-  const [events, setEvents] = useState([]);
-  const [daysAvailability, setDaysAvailability] = useState([]); // Nuevo estado
   const [refreshKey, setRefreshKey] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   // Estados para cada modal y su evento asociado
@@ -42,31 +43,17 @@ const Agenda = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Obtener disponibilidad del mes
-  useEffect(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/day/availability/${year}/${month}`)
-      .then((res) => {
-        setDaysAvailability(res.data);
-      })
-      .catch((err) => console.error(err));
-  }, [refreshKey]);
-
-  const fetchEvents = () => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/day/calendar-events`)
-      .then((res) => {
-        setEvents(res.data);
-      })
-      .catch((err) => console.error(err));
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, [refreshKey]);
+  // Eliminar useEffect de disponibilidad y fetchEvents, y usar los hooks
+  const {
+    daysAvailability,
+    refetch: refetchAvailability,
+    loading,
+  } = useFetchDayAvailability(refreshKey);
+  const {
+    events,
+    refetch: refetchEvents,
+    loading: loadingEvents,
+  } = useFetchCalendarEvents(refreshKey);
 
   const formatTime = (start, end) => {
     if (!start || !end) return "";
@@ -391,6 +378,7 @@ const Agenda = () => {
       </div>
       <Card>
         <Card.Body>
+          {(loading || loadingEvents) && <Loader />}
           <FullCalendar
             plugins={[
               dayGridPlugin,
@@ -407,7 +395,7 @@ const Agenda = () => {
             height="auto"
             allDaySlot={false}
             buttonText={{
-              today: "Hoy",
+              today: "Volver a hoy",
               month: "Mes",
               week: "Semana",
               day: "Día",

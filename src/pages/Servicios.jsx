@@ -16,6 +16,7 @@ import useUpdateServicePrice from "../hooks/useUpdateServicePrice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useUpdateService from "../hooks/useUpdateService";
+import Loader from "../components/Loader";
 
 const Servicios = () => {
   const { services, carTypes, servicePrices, loading, error, refetch } =
@@ -132,11 +133,7 @@ const Servicios = () => {
           </Button>
         </div>
       </div>
-      {loading && (
-        <div className="text-center my-4">
-          <Spinner animation="border" variant="primary" /> Cargando...
-        </div>
-      )}
+      {loading && <Loader />}
       {error && <Alert variant="danger">Error al cargar servicios</Alert>}
       {!loading && !error && (
         <div className="d-flex flex-column gap-3">
