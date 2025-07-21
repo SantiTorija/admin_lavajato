@@ -1,11 +1,28 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+
+const EMAILS_KEY = "admin_lavajato_emails";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [emails, setEmails] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(EMAILS_KEY)) || [];
+    } catch {
+      return [];
+    }
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Guardar email si no existe
+    if (email && !emails.includes(email)) {
+      const newEmails = [email, ...emails].slice(0, 10); // máximo 10 sugerencias
+      setEmails(newEmails);
+      localStorage.setItem(EMAILS_KEY, JSON.stringify(newEmails));
+    }
     navigate("/");
   };
 
@@ -34,17 +51,27 @@ const Login = () => {
                   <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
-                    placeholder="Ingresa tu email"
+                    placeholder="ingrese su email"
                     required
                     size="lg"
                     autoFocus
+                    list={emails.length > 0 ? "email-suggestions" : undefined}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
+                  {emails.length > 0 && (
+                    <datalist id="email-suggestions">
+                      {emails.map((em, i) => (
+                        <option value={em} key={i} />
+                      ))}
+                    </datalist>
+                  )}
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="password">
                   <Form.Label>Contraseña</Form.Label>
                   <Form.Control
                     type="password"
-                    placeholder="Contraseña"
+                    placeholder="ingrese contraseña"
                     required
                     size="lg"
                   />

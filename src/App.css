@@ -212,3 +212,15 @@
     display: none !important;
   }
 }
+
+/* Placeholders visibles y con buen contraste */
+input::placeholder, textarea::placeholder {
+  color: #555 !important; /* gris oscuro para temas claros */
+  opacity: 1 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  input::placeholder, textarea::placeholder {
+    color: #ccc !important; /* gris claro para temas oscuros */
+  }
+}
