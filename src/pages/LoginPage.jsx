@@ -146,7 +146,7 @@ const LoginPage = () => {
                   Iniciar sesión
                 </h2>
                 <p className="text-muted mb-0" style={{ fontSize: 14 }}>
-                  Panel de administración Lavajato
+                  Panel de administración
                 </p>
               </div>
 
@@ -253,7 +253,7 @@ const LoginPage = () => {
 
               <div className="text-center mt-4">
                 <small className="text-muted">
-                  © 2024 Lavajato. Todos los derechos reservados.
+                  © {new Date().getFullYear()} Lavajato Car Center
                 </small>
               </div>
             </Card.Body>
