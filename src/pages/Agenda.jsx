@@ -252,6 +252,7 @@ const Agenda = () => {
 
   const handleCloseModal = () => {
     setSelectedEvent(null);
+    document.body.style.overflow = "auto"; // Solución para Chrome mobile
   };
 
   const headerToolbar = isMobile
