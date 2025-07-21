@@ -4,7 +4,6 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-
 import bootstrap5Plugin from "@fullcalendar/bootstrap5";
 import esLocale from "@fullcalendar/core/locales/es";
 import axios from "axios";
@@ -236,23 +235,54 @@ const Agenda = () => {
     );
   };
 
+  // Handlers para abrir y cerrar modales de forma clara y segura
+  const openOrderModal = (event) => {
+    setSelectedEvent(event);
+    setSelectedFreeSlot(null);
+    setSelectedAdminSlot(null);
+    setShowFreeSlotModal(false);
+    setShowAdminSlotModal(false);
+  };
+
+  const openFreeSlotModal = (event) => {
+    setSelectedEvent(null);
+    setSelectedFreeSlot(event);
+    setSelectedAdminSlot(null);
+    setShowFreeSlotModal(true);
+    setShowAdminSlotModal(false);
+  };
+
+  const openAdminSlotModal = (event) => {
+    setSelectedEvent(null);
+    setSelectedFreeSlot(null);
+    setSelectedAdminSlot(event);
+    setShowFreeSlotModal(false);
+    setShowAdminSlotModal(true);
+  };
+
+  const closeAllModals = () => {
+    setSelectedEvent(null);
+    setSelectedFreeSlot(null);
+    setSelectedAdminSlot(null);
+    setShowFreeSlotModal(false);
+    setShowAdminSlotModal(false);
+    document.body.style.overflow = "auto"; // Por si acaso
+  };
+
   // Nuevo handler para clicks en eventos
   const handleCalendarEventClick = (info) => {
     const event = info.event;
     if (event.extendedProps?.freeSlot) {
-      setSelectedFreeSlot(event);
-      setShowFreeSlotModal(true);
+      openFreeSlotModal(event);
     } else if (event.extendedProps?.admin_created) {
-      setSelectedAdminSlot(event);
-      setShowAdminSlotModal(true);
-    } else {
-      setSelectedEvent(event);
+      openAdminSlotModal(event);
+    } else if (
+      event.extendedProps?.cliente ||
+      event.extendedProps?.vehiculo ||
+      event.extendedProps?.servicio
+    ) {
+      openOrderModal(event);
     }
-  };
-
-  const handleCloseModal = () => {
-    setSelectedEvent(null);
-    document.body.style.overflow = "auto"; // Solución para Chrome mobile
   };
 
   const headerToolbar = isMobile
@@ -398,7 +428,7 @@ const Agenda = () => {
         </Card.Body>
       </Card>
 
-      <Modal show={!!selectedEvent} onHide={handleCloseModal} centered>
+      <Modal show={!!selectedEvent} onHide={closeAllModals} centered>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <div className="row">
@@ -456,18 +486,14 @@ const Agenda = () => {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+          <Button variant="secondary" onClick={closeAllModals}>
             Cerrar
           </Button>
         </Modal.Footer>
       </Modal>
 
       {/* Modal de confirmación para slots libres */}
-      <Modal
-        show={showFreeSlotModal}
-        onHide={() => setShowFreeSlotModal(false)}
-        centered
-      >
+      <Modal show={showFreeSlotModal} onHide={closeAllModals} centered>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <div className="text-center">
@@ -516,11 +542,7 @@ const Agenda = () => {
       </Modal>
 
       {/* Modal de confirmación para slots reservados por admin */}
-      <Modal
-        show={showAdminSlotModal}
-        onHide={() => setShowAdminSlotModal(false)}
-        centered
-      >
+      <Modal show={showAdminSlotModal} onHide={closeAllModals} centered>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <div className="text-center">
