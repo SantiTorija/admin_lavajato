@@ -13,6 +13,8 @@ import { useAuthRedux } from "../hooks/useAuthRedux";
 import { loginUser } from "../redux/authSlice";
 import { useDispatch } from "react-redux";
 
+const EMAILS_KEY = "admin_lavajato_emails";
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading, clearError } = useAuthRedux();
@@ -21,6 +23,13 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+  });
+  const [emails, setEmails] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(EMAILS_KEY)) || [];
+    } catch {
+      return [];
+    }
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -82,6 +91,13 @@ const LoginPage = () => {
     setLoginError("");
 
     try {
+      // Guardar email si no existe
+      if (formData.email && !emails.includes(formData.email)) {
+        const newEmails = [formData.email, ...emails].slice(0, 10);
+        setEmails(newEmails);
+        localStorage.setItem(EMAILS_KEY, JSON.stringify(newEmails));
+      }
+
       const action = await dispatch(
         loginUser({
           email: formData.email,
@@ -166,12 +182,20 @@ const LoginPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="ejemplo@correo.com"
+                    placeholder="ingrese su email"
                     isInvalid={!!errors.email}
                     size="lg"
                     autoFocus
                     disabled={isSubmitting}
+                    list={emails.length > 0 ? "email-suggestions" : undefined}
                   />
+                  {emails.length > 0 && (
+                    <datalist id="email-suggestions">
+                      {emails.map((em, i) => (
+                        <option value={em} key={i} />
+                      ))}
+                    </datalist>
+                  )}
                   <Form.Control.Feedback type="invalid">
                     {errors.email}
                   </Form.Control.Feedback>
@@ -185,7 +209,7 @@ const LoginPage = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="Ingresa tu contraseña"
+                      placeholder="ingrese contraseña"
                       isInvalid={!!errors.password}
                       size="lg"
                       disabled={isSubmitting}
