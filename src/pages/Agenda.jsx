@@ -24,9 +24,13 @@ const Agenda = () => {
   const [daysAvailability, setDaysAvailability] = useState([]); // Nuevo estado
   const [refreshKey, setRefreshKey] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  // Estados para cada modal y su evento asociado
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [selectedOrderEvent, setSelectedOrderEvent] = useState(null);
+
   const [showFreeSlotModal, setShowFreeSlotModal] = useState(false);
   const [selectedFreeSlot, setSelectedFreeSlot] = useState(null);
+
   const [showAdminSlotModal, setShowAdminSlotModal] = useState(false);
   const [selectedAdminSlot, setSelectedAdminSlot] = useState(null);
   const { markSlot } = useMarkSlotUnavailable();
@@ -222,7 +226,7 @@ const Agenda = () => {
           cursor: "pointer",
           transition: "background 0.2s",
         }}
-        onClick={() => setSelectedEvent(arg.event)}
+        onClick={() => setSelectedOrderEvent(arg.event)}
         onMouseOver={(e) => (e.currentTarget.style.background = borderColor)}
         onMouseOut={(e) => (e.currentTarget.style.background = backgroundColor)}
       >
@@ -235,53 +239,53 @@ const Agenda = () => {
     );
   };
 
-  // Handlers para abrir y cerrar modales de forma clara y segura
-  const openOrderModal = (event) => {
-    setSelectedEvent(event);
-    setSelectedFreeSlot(null);
-    setSelectedAdminSlot(null);
-    setShowFreeSlotModal(false);
-    setShowAdminSlotModal(false);
+  // Handlers para abrir/cerrar cada modal
+  const handleOrderEventClick = (event) => {
+    setSelectedOrderEvent(event);
+    setShowOrderModal(true);
   };
 
-  const openFreeSlotModal = (event) => {
-    setSelectedEvent(null);
+  const handleFreeSlotClick = (event) => {
     setSelectedFreeSlot(event);
-    setSelectedAdminSlot(null);
     setShowFreeSlotModal(true);
-    setShowAdminSlotModal(false);
   };
 
-  const openAdminSlotModal = (event) => {
-    setSelectedEvent(null);
-    setSelectedFreeSlot(null);
+  const handleAdminSlotClick = (event) => {
     setSelectedAdminSlot(event);
-    setShowFreeSlotModal(false);
     setShowAdminSlotModal(true);
   };
 
-  const closeAllModals = () => {
-    setSelectedEvent(null);
-    setSelectedFreeSlot(null);
-    setSelectedAdminSlot(null);
+  const closeOrderModal = () => {
+    setShowOrderModal(false);
+    setSelectedOrderEvent(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const closeFreeSlotModal = () => {
     setShowFreeSlotModal(false);
+    setSelectedFreeSlot(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const closeAdminSlotModal = () => {
     setShowAdminSlotModal(false);
-    document.body.style.overflow = "auto"; // Por si acaso
+    setSelectedAdminSlot(null);
+    document.body.style.overflow = "auto";
   };
 
   // Nuevo handler para clicks en eventos
   const handleCalendarEventClick = (info) => {
     const event = info.event;
     if (event.extendedProps?.freeSlot) {
-      openFreeSlotModal(event);
+      handleFreeSlotClick(event);
     } else if (event.extendedProps?.admin_created) {
-      openAdminSlotModal(event);
+      handleAdminSlotClick(event);
     } else if (
       event.extendedProps?.cliente ||
       event.extendedProps?.vehiculo ||
       event.extendedProps?.servicio
     ) {
-      openOrderModal(event);
+      handleOrderEventClick(event);
     }
   };
 
@@ -325,7 +329,7 @@ const Agenda = () => {
     };
   };
 
-  const eventDetails = getEventDetails(selectedEvent);
+  const eventDetails = getEventDetails(selectedOrderEvent);
 
   // Obtener todos los días del mes actual
   const today = new Date();
@@ -428,7 +432,7 @@ const Agenda = () => {
         </Card.Body>
       </Card>
 
-      <Modal show={!!selectedEvent} onHide={closeAllModals} centered>
+      <Modal show={showOrderModal} onHide={closeOrderModal} centered>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <div className="row">
@@ -486,14 +490,14 @@ const Agenda = () => {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={closeAllModals}>
+          <Button variant="secondary" onClick={closeOrderModal}>
             Cerrar
           </Button>
         </Modal.Footer>
       </Modal>
 
       {/* Modal de confirmación para slots libres */}
-      <Modal show={showFreeSlotModal} onHide={closeAllModals} centered>
+      <Modal show={showFreeSlotModal} onHide={closeFreeSlotModal} centered>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <div className="text-center">
@@ -522,18 +526,14 @@ const Agenda = () => {
                         )
                       : "";
                     await markSlot({ date, slot });
-                    setShowFreeSlotModal(false);
-                    setSelectedFreeSlot(null);
+                    closeFreeSlotModal();
                     setRefreshKey((k) => k + 1); // Refrescar datos
                   }
                 }}
               >
                 Sí
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowFreeSlotModal(false)}
-              >
+              <Button variant="secondary" onClick={closeFreeSlotModal}>
                 No
               </Button>
             </div>
@@ -542,7 +542,7 @@ const Agenda = () => {
       </Modal>
 
       {/* Modal de confirmación para slots reservados por admin */}
-      <Modal show={showAdminSlotModal} onHide={closeAllModals} centered>
+      <Modal show={showAdminSlotModal} onHide={closeAdminSlotModal} centered>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body>
           <div className="text-center">
@@ -571,18 +571,14 @@ const Agenda = () => {
                         )
                       : "";
                     await markSlotAvailable({ date, slot });
-                    setShowAdminSlotModal(false);
-                    setSelectedAdminSlot(null);
+                    closeAdminSlotModal();
                     setRefreshKey((k) => k + 1); // Refrescar datos
                   }
                 }}
               >
                 Sí
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowAdminSlotModal(false)}
-              >
+              <Button variant="secondary" onClick={closeAdminSlotModal}>
                 No
               </Button>
             </div>
