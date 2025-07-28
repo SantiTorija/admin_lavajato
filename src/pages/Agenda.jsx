@@ -14,10 +14,12 @@ import Loader from "../components/Loader";
 import OrderDetailsModal from "../components/OrderDetailsModal";
 import FreeSlotConfirmationModal from "../components/FreeSlotConfirmationModal";
 import AdminSlotConfirmationModal from "../components/AdminSlotConfirmationModal";
+import { useTheme } from "../context/ThemeContext";
 
 // Los slots disponibles ahora se manejan en el backend
 
 const Agenda = () => {
+  const { theme } = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -365,45 +367,83 @@ const Agenda = () => {
       <Card>
         <Card.Body>
           {loading && <Loader />}
-          <FullCalendar
-            plugins={[
-              dayGridPlugin,
-              timeGridPlugin,
-              interactionPlugin,
+          <div
+            style={{
+              // CSS personalizado para números de días en negro
+              "--fc-daygrid-day-number-color": "#000000",
+              "--fc-daygrid-day-number-hover-color": "#000000",
+            }}
+          >
+            <style>
+              {`
+                .fc-daygrid-day-number,
+                .fc-daygrid-day-number:link,
+                .fc-daygrid-day-number:visited,
+                .fc-daygrid-day-number:active,
+                .fc-daygrid-day-number:hover {
+                  color: ${
+                    theme === "light" ? "#000000" : "#ffffff"
+                  } !important;
+                }
+                
+                .fc-daygrid-day .fc-daygrid-day-number,
+                .fc-daygrid-day.fc-day-today .fc-daygrid-day-number,
+                .fc-daygrid-day.fc-day-other .fc-daygrid-day-number,
+                .fc-daygrid-day.fc-day-past .fc-daygrid-day-number,
+                .fc-daygrid-day.fc-day-future .fc-daygrid-day-number {
+                  color: ${
+                    theme === "light" ? "#000000" : "#ffffff"
+                  } !important;
+                }
+                
+                /* Forzar color según tema en todos los casos */
+                [class*="fc-daygrid-day"] [class*="fc-daygrid-day-number"] {
+                  color: ${
+                    theme === "light" ? "#000000" : "#ffffff"
+                  } !important;
+                }
+              `}
+            </style>
+            <FullCalendar
+              plugins={[
+                dayGridPlugin,
+                timeGridPlugin,
+                interactionPlugin,
 
-              bootstrap5Plugin,
-            ]}
-            headerToolbar={headerToolbar}
-            initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
-            events={events}
-            locale={esLocale}
-            themeSystem="bootstrap5"
-            height="auto"
-            allDaySlot={false}
-            buttonText={{
-              today: "Volver a hoy",
-              month: "Mes",
-              week: "Semana",
-              day: "Día",
-              list: "Lista",
-              prev: "<",
-              next: ">",
-            }}
-            slotMinTime="08:00:00"
-            slotMaxTime="19:00:00"
-            slotDuration="00:30:00"
-            slotLabelFormat={{
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }}
-            hiddenDays={[0, 6]} // Ocultar domingo (0) y sábado (6)
-            slotEventOverlap={false}
-            eventOverlap={false}
-            eventContent={eventContent}
-            eventClick={handleCalendarEventClick}
-            datesSet={handleDatesSet}
-          />
+                bootstrap5Plugin,
+              ]}
+              headerToolbar={headerToolbar}
+              initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
+              events={events}
+              locale={esLocale}
+              themeSystem="bootstrap5"
+              height="auto"
+              allDaySlot={false}
+              buttonText={{
+                today: "Volver a hoy",
+                month: "Mes",
+                week: "Semana",
+                day: "Día",
+                list: "Lista",
+                prev: "<",
+                next: ">",
+              }}
+              slotMinTime="08:00:00"
+              slotMaxTime="19:00:00"
+              slotDuration="00:30:00"
+              slotLabelFormat={{
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              }}
+              hiddenDays={[0, 6]} // Ocultar domingo (0) y sábado (6)
+              slotEventOverlap={false}
+              eventOverlap={false}
+              eventContent={eventContent}
+              eventClick={handleCalendarEventClick}
+              datesSet={handleDatesSet}
+            />
+          </div>
         </Card.Body>
       </Card>
 
