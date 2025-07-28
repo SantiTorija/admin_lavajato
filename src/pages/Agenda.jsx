@@ -6,25 +6,28 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import bootstrap5Plugin from "@fullcalendar/bootstrap5";
 import esLocale from "@fullcalendar/core/locales/es";
-import axios from "axios";
 import { FaEye } from "react-icons/fa";
 import useMarkSlotUnavailable from "../hooks/useMarkSlotUnavailable";
 import useMarkSlotAvailable from "../hooks/useMarkSlotAvailable";
-import useFetchDayAvailability from "../hooks/useFetchDayAvailability";
-import useFetchCalendarEvents from "../hooks/useFetchCalendarEvents";
+import useFetchProcessedEventsByRange from "../hooks/useFetchProcessedEventsByRange";
 import Loader from "../components/Loader";
+import OrderDetailsModal from "../components/OrderDetailsModal";
+import FreeSlotConfirmationModal from "../components/FreeSlotConfirmationModal";
+import AdminSlotConfirmationModal from "../components/AdminSlotConfirmationModal";
 
-// Definir los slots disponibles
-const availableSlots = [
-  { start: "08:30", end: "10:30" },
-  { start: "10:30", end: "12:30" },
-  { start: "14:00", end: "16:00" },
-  { start: "16:00", end: "18:00" },
-];
+// Los slots disponibles ahora se manejan en el backend
 
 const Agenda = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Estados para las fechas visibles del calendario
+  // Inicializar con la fecha actual para evitar estado null
+  const currentDate = new Date();
+  const currentDateString = currentDate.toISOString().split("T")[0];
+  const [calendarStartDate, setCalendarStartDate] = useState(currentDateString);
+  const [calendarEndDate, setCalendarEndDate] = useState(currentDateString);
+
   // Estados para cada modal y su evento asociado
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [selectedOrderEvent, setSelectedOrderEvent] = useState(null);
@@ -43,17 +46,47 @@ const Agenda = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Eliminar useEffect de disponibilidad y fetchEvents, y usar los hooks
-  const {
-    daysAvailability,
-    refetch: refetchAvailability,
-    loading,
-  } = useFetchDayAvailability(refreshKey);
-  const {
-    events,
-    refetch: refetchEvents,
-    loading: loadingEvents,
-  } = useFetchCalendarEvents(refreshKey);
+  /**
+   * Handler para cuando cambian las fechas visibles del calendario
+   * Se ejecuta cuando el usuario navega entre meses/semanas/días
+   *
+   * Este handler es crucial porque:
+   * - En vista mensual: puede incluir días de meses anteriores/posteriores
+   * - En vista semanal: puede cruzar dos meses diferentes
+   * - En vista diaria: start y end son el mismo día
+   *
+   * @param {object} info - Información del evento datesSet de FullCalendar
+   */
+  const handleDatesSet = (info) => {
+    const start = info.start;
+    const end = info.end;
+
+    // Convertir fechas a formato YYYY-MM-DD para la API
+    const startDate = start.toISOString().split("T")[0];
+    const endDate = end.toISOString().split("T")[0];
+
+    // Solo actualizar si las fechas realmente cambiaron
+    setCalendarStartDate((prevStart) => {
+      if (prevStart !== startDate) {
+        return startDate;
+      }
+      return prevStart;
+    });
+
+    setCalendarEndDate((prevEnd) => {
+      if (prevEnd !== endDate) {
+        return endDate;
+      }
+      return prevEnd;
+    });
+  };
+
+  // Hook optimizado para obtener eventos procesados desde el backend
+  const { events, loading } = useFetchProcessedEventsByRange(
+    calendarStartDate,
+    calendarEndDate,
+    refreshKey
+  );
 
   const formatTime = (start, end) => {
     if (!start || !end) return "";
@@ -105,14 +138,14 @@ const Agenda = () => {
             cursor: "pointer",
             transition: "background 0.2s",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             textAlign: "center",
           }}
           // onClick eliminado, ahora se maneja en eventClick
         >
-          {arg.event.title}
-          <br />
+          <span>{arg.event.title}</span>
           <small style={{ fontSize: "0.8rem", opacity: 0.9 }}>
             {timeDisplay}
           </small>
@@ -285,7 +318,7 @@ const Agenda = () => {
     : {
         left: "prev,next today",
         center: "title",
-        right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
       };
 
   const getEventDetails = (event) => {
@@ -318,53 +351,6 @@ const Agenda = () => {
 
   const eventDetails = getEventDetails(selectedOrderEvent);
 
-  // Obtener todos los días del mes actual
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const allDatesInMonth = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = (i + 1).toString().padStart(2, "0");
-    return `${year}-${month.toString().padStart(2, "0")}-${day}`;
-  });
-
-  // Generar eventos libres y ocupados a partir de daysAvailability y events
-  const allEvents = [];
-  allDatesInMonth.forEach((date) => {
-    const day = daysAvailability.find((d) => d.date.split("T")[0] === date);
-    let slotsOcupados = [];
-    if (day) {
-      slotsOcupados = day.slots_available;
-    }
-    // Si el día no existe, todos los slots son libres
-    availableSlots.forEach((slot, idx) => {
-      const slotTime = slot.start;
-      const isOccupied = slotsOcupados.includes(slotTime);
-      const realEvent = events.find((event) => {
-        const eventDate = event.start.split("T")[0];
-        const eventStart = new Date(event.start).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        });
-        return eventDate === date && eventStart === slotTime;
-      });
-      if (realEvent) {
-        allEvents.push(realEvent);
-      } else if (!isOccupied) {
-        allEvents.push({
-          id: `free-slot-${date}-${idx}`,
-          title: "Disponible",
-          start: `${date}T${slotTime}:00`,
-          end: `${date}T${slot.end}:00`,
-          freeSlot: true,
-          backgroundColor: "#28a745",
-          borderColor: "#1e7e34",
-        });
-      }
-    });
-  });
-
   return (
     <Container fluid className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -378,7 +364,7 @@ const Agenda = () => {
       </div>
       <Card>
         <Card.Body>
-          {(loading || loadingEvents) && <Loader />}
+          {loading && <Loader />}
           <FullCalendar
             plugins={[
               dayGridPlugin,
@@ -389,7 +375,7 @@ const Agenda = () => {
             ]}
             headerToolbar={headerToolbar}
             initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
-            events={allEvents}
+            events={events}
             locale={esLocale}
             themeSystem="bootstrap5"
             height="auto"
@@ -416,163 +402,41 @@ const Agenda = () => {
             eventOverlap={false}
             eventContent={eventContent}
             eventClick={handleCalendarEventClick}
+            datesSet={handleDatesSet}
           />
         </Card.Body>
       </Card>
 
-      <Modal show={showOrderModal} onHide={closeOrderModal} centered>
-        <Modal.Header closeButton></Modal.Header>
-        <Modal.Body>
-          <div className="row">
-            <div className="col-12">
-              <h6 className="text-primary mb-3">Información del Cliente</h6>
-              <p>
-                <strong>Nombre:</strong> {eventDetails.cliente?.nombre || ""}{" "}
-                {eventDetails.cliente?.apellido || ""}
-              </p>
-              <p>
-                <strong>Teléfono:</strong> {eventDetails.cliente?.phone || ""}
-              </p>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-12">
-              <h6 className="text-primary mb-3">Información del Vehículo</h6>
-              <p>
-                <strong>Marca:</strong> {eventDetails.vehiculo?.marca || ""}
-              </p>
-              <p>
-                <strong>Modelo:</strong> {eventDetails.vehiculo?.modelo || ""}
-              </p>
-              <p>
-                <strong>Tipo de Auto:</strong> {eventDetails.tipoAuto || ""}
-              </p>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-12">
-              <h6 className="text-primary mb-3">Información del Servicio</h6>
-              <p>
-                <strong>Servicio:</strong> {eventDetails.servicio || ""}
-              </p>
-              {eventDetails.total && (
-                <p>
-                  <strong>Total:</strong> ${eventDetails.total}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="col-12">
-              <h6 className="text-primary mb-3">Información de la Reserva</h6>
-              <p>
-                <strong>Fecha:</strong> {eventDetails.date || ""}
-              </p>
-              <p>
-                <strong>Hora:</strong> {eventDetails.time || ""}
-              </p>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeOrderModal}>
-            Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* Modal para mostrar detalles de orden */}
+      <OrderDetailsModal
+        show={showOrderModal}
+        onHide={closeOrderModal}
+        eventDetails={eventDetails}
+      />
 
       {/* Modal de confirmación para slots libres */}
-      <Modal show={showFreeSlotModal} onHide={closeFreeSlotModal} centered>
-        <Modal.Header closeButton></Modal.Header>
-        <Modal.Body>
-          <div className="text-center">
-            <h5>¿Quieres marcar este horario como no disponible?</h5>
-            <p>
-              {selectedFreeSlot &&
-                `${new Date(
-                  selectedFreeSlot.start
-                ).toLocaleDateString()} - ${formatTime(
-                  selectedFreeSlot.start,
-                  selectedFreeSlot.end
-                )}`}
-            </p>
-            <div className="d-flex justify-content-center gap-3 mt-4">
-              <Button
-                variant="danger"
-                onClick={async () => {
-                  if (selectedFreeSlot) {
-                    const date = new Date(selectedFreeSlot.start)
-                      .toISOString()
-                      .split("T")[0];
-                    const slot = selectedFreeSlot.start
-                      ? new Date(selectedFreeSlot.start).toLocaleTimeString(
-                          [],
-                          { hour: "2-digit", minute: "2-digit", hour12: false }
-                        )
-                      : "";
-                    await markSlot({ date, slot });
-                    closeFreeSlotModal();
-                    setRefreshKey((k) => k + 1); // Refrescar datos
-                  }
-                }}
-              >
-                Sí
-              </Button>
-              <Button variant="secondary" onClick={closeFreeSlotModal}>
-                No
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
+      <FreeSlotConfirmationModal
+        show={showFreeSlotModal}
+        onHide={closeFreeSlotModal}
+        selectedSlot={selectedFreeSlot}
+        onConfirm={async ({ date, slot }) => {
+          await markSlot({ date, slot });
+          setRefreshKey((k) => k + 1); // Refrescar datos
+        }}
+        formatTime={formatTime}
+      />
 
       {/* Modal de confirmación para slots reservados por admin */}
-      <Modal show={showAdminSlotModal} onHide={closeAdminSlotModal} centered>
-        <Modal.Header closeButton></Modal.Header>
-        <Modal.Body>
-          <div className="text-center">
-            <h5>¿Quieres volver a marcar esta hora como disponible?</h5>
-            <p>
-              {selectedAdminSlot &&
-                `${new Date(
-                  selectedAdminSlot.start
-                ).toLocaleDateString()} - ${formatTime(
-                  selectedAdminSlot.start,
-                  selectedAdminSlot.end
-                )}`}
-            </p>
-            <div className="d-flex justify-content-center gap-3 mt-4">
-              <Button
-                variant="success"
-                onClick={async () => {
-                  if (selectedAdminSlot) {
-                    const date = new Date(selectedAdminSlot.start)
-                      .toISOString()
-                      .split("T")[0];
-                    const slot = selectedAdminSlot.start
-                      ? new Date(selectedAdminSlot.start).toLocaleTimeString(
-                          [],
-                          { hour: "2-digit", minute: "2-digit", hour12: false }
-                        )
-                      : "";
-                    await markSlotAvailable({ date, slot });
-                    closeAdminSlotModal();
-                    setRefreshKey((k) => k + 1); // Refrescar datos
-                  }
-                }}
-              >
-                Sí
-              </Button>
-              <Button variant="secondary" onClick={closeAdminSlotModal}>
-                No
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
+      <AdminSlotConfirmationModal
+        show={showAdminSlotModal}
+        onHide={closeAdminSlotModal}
+        selectedSlot={selectedAdminSlot}
+        onConfirm={async ({ date, slot }) => {
+          await markSlotAvailable({ date, slot });
+          setRefreshKey((k) => k + 1); // Refrescar datos
+        }}
+        formatTime={formatTime}
+      />
     </Container>
   );
 };
