@@ -23,12 +23,49 @@ const Agenda = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  // Función para obtener el rango real que se ve en el calendario
+  const getCurrentMonthRange = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    // Obtener el primer día del mes
+    const firstDayOfMonth = new Date(year, month, 1);
+
+    // Obtener el día de la semana del primer día (0 = domingo, 1 = lunes, etc.)
+    const firstDayWeekday = firstDayOfMonth.getDay();
+
+    // Calcular cuántos días del mes anterior necesitamos mostrar
+    // Si el primer día es domingo (0), no necesitamos días anteriores
+    // Si es lunes (1), necesitamos 1 día anterior, etc.
+    const daysFromPreviousMonth =
+      firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
+
+    // Obtener el último día del mes
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Calcular cuántos días del siguiente mes necesitamos mostrar
+    // Para completar la semana hasta el sábado
+    const lastDayWeekday = lastDayOfMonth.getDay();
+    const daysFromNextMonth = lastDayWeekday === 0 ? 0 : 7 - lastDayWeekday;
+
+    // Calcular las fechas reales
+    const start = new Date(year, month, 1 - daysFromPreviousMonth);
+    const end = new Date(year, month + 1, daysFromNextMonth);
+
+    return {
+      start: start.toISOString().split("T")[0],
+      end: end.toISOString().split("T")[0],
+    };
+  };
+
   // Estados para las fechas visibles del calendario
-  // Inicializar con la fecha actual para evitar estado null
-  const currentDate = new Date();
-  const currentDateString = currentDate.toISOString().split("T")[0];
-  const [calendarStartDate, setCalendarStartDate] = useState(currentDateString);
-  const [calendarEndDate, setCalendarEndDate] = useState(currentDateString);
+  // Inicializar con el rango del mes actual para evitar fetchs innecesarios
+  const initialMonthRange = getCurrentMonthRange();
+  const [calendarStartDate, setCalendarStartDate] = useState(
+    initialMonthRange.start
+  );
+  const [calendarEndDate, setCalendarEndDate] = useState(initialMonthRange.end);
 
   // Estados para cada modal y su evento asociado
   const [showOrderModal, setShowOrderModal] = useState(false);
