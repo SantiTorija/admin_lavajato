@@ -132,10 +132,12 @@ const Agenda = () => {
     const startTime = new Date(start).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
     const endTime = new Date(end).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
     return `${startTime} - ${endTime}`;
   };
@@ -401,9 +403,11 @@ const Agenda = () => {
           ? `${start.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
+              hour12: false,
             })} - ${end.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
+              hour12: false,
             })}`
           : "",
       cliente: extendedProps.cliente || {},
