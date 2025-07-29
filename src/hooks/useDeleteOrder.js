@@ -16,6 +16,7 @@ export const useDeleteOrder = () => {
   const deleteOrder = async (orderId, date, slot) => {
     setLoading(true);
     setError(null);
+    console.log(slot);
 
     try {
       const response = await axios.delete(
