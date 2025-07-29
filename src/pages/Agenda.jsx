@@ -146,17 +146,17 @@ const Agenda = () => {
     const timeDisplay = formatTime(arg.event.start, arg.event.end);
 
     // Determinar el tipo de evento y sus colores
-    let backgroundColor = "#0097a7"; // Azul por defecto (eventos de clientes)
-    let borderColor = "#007c91";
+    let backgroundColor = "rgba(0, 150, 167, 0.51)"; // Azul por defecto (eventos de clientes)
+    let borderColor = "rgba(0, 124, 145, 0.5)";
 
     if (arg.event.extendedProps?.admin_created) {
       // Rojo para eventos reservados por admin
-      backgroundColor = "#dc3545";
-      borderColor = "#c82333";
+      backgroundColor = "rgb(134, 37, 47)";
+      borderColor = "rgba(200, 35, 51, 0.5)";
     } else if (arg.event.extendedProps?.freeSlot) {
       // Verde para slots libres
-      backgroundColor = "#28a745";
-      borderColor = "#1e7e34";
+      backgroundColor = "rgb(36, 129, 58)";
+      borderColor = "rgba(30, 126, 52, 0.5)";
     }
 
     // Vista mensual personalizada
@@ -368,33 +368,6 @@ const Agenda = () => {
     const end = event.end;
     const extendedProps = event.extendedProps || {};
 
-    // Debug: Verificar qué datos llegan al modal
-    console.log("🔍 DEBUG - getEventDetails - extendedProps:", extendedProps);
-    console.log(
-      "🔍 DEBUG - getEventDetails - Todas las claves disponibles:",
-      Object.keys(extendedProps)
-    );
-    console.log(
-      "🔍 DEBUG - getEventDetails - serviceId:",
-      extendedProps.serviceId
-    );
-    console.log(
-      "🔍 DEBUG - getEventDetails - carTypeId:",
-      extendedProps.carTypeId
-    );
-    console.log(
-      "🔍 DEBUG - getEventDetails - servicio?.id:",
-      extendedProps.servicio?.id
-    );
-    console.log(
-      "🔍 DEBUG - getEventDetails - vehiculo?.carTypeId:",
-      extendedProps.vehiculo?.carTypeId
-    );
-    console.log(
-      "🔍 DEBUG - getEventDetails - tipoAuto?.id:",
-      extendedProps.tipoAuto?.id
-    );
-
     return {
       title: event.title,
       date: start ? start.toLocaleDateString() : "",
@@ -476,6 +449,26 @@ const Agenda = () => {
                     theme === "light" ? "#000000" : "#ffffff"
                   } !important;
                 }
+                
+                /* Remover líneas de rejilla */            
+
+                
+               
+                
+             
+                .fc-timegrid-slot {
+                  border: none !important;
+                }
+                
+                .fc-timegrid-slot-label {
+                  border: none !important;
+                }
+                
+                .fc-timegrid-axis {
+                  border: none !important;
+                }
+                
+                
               `}
             </style>
             <FullCalendar
@@ -516,6 +509,9 @@ const Agenda = () => {
               eventContent={eventContent}
               eventClick={handleCalendarEventClick}
               datesSet={handleDatesSet}
+              eventBackgroundColor="transparent"
+              eventBorderColor="transparent"
+              eventTextColor="transparent"
             />
           </div>
         </Card.Body>
