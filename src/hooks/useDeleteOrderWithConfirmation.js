@@ -38,6 +38,13 @@ export const useDeleteOrderWithConfirmation = (onSuccess) => {
       slot: formattedSlot,
     });
 
+    // Log visible en mobile para debugging
+    alert(`DEBUG - Datos a eliminar:
+OrderId: ${orderId}
+Date: ${formattedDate}
+Slot: ${formattedSlot}
+Time original: ${slot}`);
+
     if (!formattedDate || !formattedSlot) {
       console.error("❌ Fecha o slot no disponibles");
       return;
