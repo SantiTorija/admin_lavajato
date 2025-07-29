@@ -48,24 +48,22 @@ export default function useFetchProcessedEventsByRange(
           }
         );
 
-        console.log(
-          "🔄 Respuesta del backend (eventos procesados):",
-          response.data
-        );
-        console.log("📊 Total de eventos recibidos:", response.data.length);
-        console.log("📅 Rango solicitado:", startDate, "a", endDate);
-
-        // Log detallado de cada evento
+        // Debug: Verificar si los eventos tienen serviceId y carTypeId
+        console.log("🔍 DEBUG - Verificando serviceId y carTypeId en eventos:");
         response.data.forEach((event, index) => {
-          console.log(`📋 Evento ${index + 1}:`, {
-            id: event.id,
-            title: event.title,
-            start: event.start,
-            end: event.end,
-            freeSlot: event.freeSlot,
-            admin_created: event.admin_created,
-            backgroundColor: event.backgroundColor,
-          });
+          console.log(`📋 Evento ${index + 1} - Estructura completa:`, event);
+          if (event.extendedProps) {
+            console.log(
+              `📋 Evento ${index + 1} - extendedProps:`,
+              event.extendedProps
+            );
+            console.log(
+              `📋 Evento ${index + 1} - Claves en extendedProps:`,
+              Object.keys(event.extendedProps)
+            );
+          } else {
+            console.log(`📋 Evento ${index + 1} - NO tiene extendedProps`);
+          }
         });
 
         setEvents(response.data);
@@ -99,7 +97,16 @@ export default function useFetchProcessedEventsByRange(
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-            console.log("🔄 Re-fetch - Respuesta del backend:", response.data);
+            // Debug: Verificar datos en re-fetch
+            console.log("🔄 Re-fetch - Verificando serviceId y carTypeId:");
+            response.data.forEach((event, index) => {
+              if (event.extendedProps) {
+                console.log(`📋 Re-fetch Evento ${index + 1}:`, {
+                  serviceId: event.extendedProps.serviceId,
+                  carTypeId: event.extendedProps.carTypeId,
+                });
+              }
+            });
             setEvents(response.data);
           } catch (err) {
             console.error("❌ Error en re-fetch:", err);

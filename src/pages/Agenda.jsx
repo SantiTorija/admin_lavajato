@@ -366,6 +366,33 @@ const Agenda = () => {
     const end = event.end;
     const extendedProps = event.extendedProps || {};
 
+    // Debug: Verificar qué datos llegan al modal
+    console.log("🔍 DEBUG - getEventDetails - extendedProps:", extendedProps);
+    console.log(
+      "🔍 DEBUG - getEventDetails - Todas las claves disponibles:",
+      Object.keys(extendedProps)
+    );
+    console.log(
+      "🔍 DEBUG - getEventDetails - serviceId:",
+      extendedProps.serviceId
+    );
+    console.log(
+      "🔍 DEBUG - getEventDetails - carTypeId:",
+      extendedProps.carTypeId
+    );
+    console.log(
+      "🔍 DEBUG - getEventDetails - servicio?.id:",
+      extendedProps.servicio?.id
+    );
+    console.log(
+      "🔍 DEBUG - getEventDetails - vehiculo?.carTypeId:",
+      extendedProps.vehiculo?.carTypeId
+    );
+    console.log(
+      "🔍 DEBUG - getEventDetails - tipoAuto?.id:",
+      extendedProps.tipoAuto?.id
+    );
+
     return {
       title: event.title,
       date: start ? start.toLocaleDateString() : "",
@@ -385,6 +412,12 @@ const Agenda = () => {
       tipoAuto: extendedProps.tipoAuto || "",
       total: extendedProps.total || null,
       orderId: extendedProps.orderId || null,
+      serviceId: extendedProps.serviceId || extendedProps.servicio?.id || null,
+      carTypeId:
+        extendedProps.carTypeId ||
+        extendedProps.vehiculo?.carTypeId ||
+        extendedProps.tipoAuto?.id ||
+        null,
     };
   };
 
@@ -450,7 +483,7 @@ const Agenda = () => {
                 bootstrap5Plugin,
               ]}
               headerToolbar={headerToolbar}
-              initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
+              initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
               events={events}
               locale={esLocale}
               themeSystem="bootstrap5"
@@ -489,6 +522,7 @@ const Agenda = () => {
         show={showOrderModal}
         onHide={closeOrderModal}
         eventDetails={eventDetails}
+        onOrderDeleted={() => setRefreshKey((k) => k + 1)}
       />
 
       {/* Modal de confirmación para slots libres */}
