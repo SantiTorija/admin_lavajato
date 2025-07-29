@@ -1,4 +1,5 @@
-import { useDeleteOrder } from "./useDeleteOrder";
+import { useState } from "react";
+import axios from "axios";
 import Swal from "sweetalert2";
 
 /**
@@ -7,7 +8,8 @@ import Swal from "sweetalert2";
  * @returns {object} - Objeto con handleDeleteWithConfirmation y loading
  */
 export const useDeleteOrderWithConfirmation = (onSuccess) => {
-  const { deleteOrder, loading } = useDeleteOrder();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleDeleteWithConfirmation = async (orderId, date, slot) => {
     // Validar que tengamos los datos necesarios
@@ -69,24 +71,30 @@ Time original: ${slot}`);
     });
 
     if (result.isConfirmed) {
-      const deleteResult = await deleteOrder(
-        orderId,
-        formattedDate,
-        formattedSlot
-      );
+      setLoading(true);
+      setError(null);
 
-      if (deleteResult.success) {
-        console.log("✅ Orden eliminada exitosamente");
+      try {
+        const response = await axios.delete(
+          `${
+            import.meta.env.VITE_API_URL
+          }/order/${orderId}/${formattedDate}/${formattedSlot}`
+        );
+
+        console.log("✅ Orden eliminada exitosamente:", response.data);
 
         // Ejecutar callback de éxito si existe
         if (onSuccess && typeof onSuccess === "function") {
           onSuccess();
         }
 
-        return { success: true };
-      } else {
-        console.error("❌ Error al eliminar orden:", deleteResult.error);
-        return { success: false, error: deleteResult.error };
+        return { success: true, data: response.data };
+      } catch (err) {
+        console.error("❌ Error eliminando orden:", err);
+        setError(err.response?.data?.message || err.message);
+        return { success: false, error: err };
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -96,5 +104,6 @@ Time original: ${slot}`);
   return {
     handleDeleteWithConfirmation,
     loading,
+    error,
   };
 };
