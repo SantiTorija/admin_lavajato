@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Modal, Button } from "react-bootstrap";
+import { FaPlus, FaLock } from "react-icons/fa";
 import styles from "./FreeSlotConfirmationModal.module.css";
+import NewOrderModal from "./NewOrderModal";
 
 /**
  * Modal de confirmación para marcar un slot libre como no disponible
@@ -9,6 +11,7 @@ import styles from "./FreeSlotConfirmationModal.module.css";
  * @param {object} selectedSlot - Slot seleccionado para marcar como no disponible
  * @param {function} onConfirm - Función que se ejecuta al confirmar
  * @param {function} formatTime - Función para formatear el tiempo
+ * @param {function} onOrderCreated - Callback cuando se crea una orden exitosamente
  */
 const FreeSlotConfirmationModal = ({
   show,
@@ -16,8 +19,11 @@ const FreeSlotConfirmationModal = ({
   selectedSlot,
   onConfirm,
   formatTime,
+  onOrderCreated,
 }) => {
-  const handleConfirm = async () => {
+  const [showNewOrderModal, setShowNewOrderModal] = useState(false);
+
+  const handleMakeNotAvailable = async () => {
     if (selectedSlot) {
       const date = new Date(selectedSlot.start).toISOString().split("T")[0];
       const slot = selectedSlot.start
@@ -39,12 +45,18 @@ const FreeSlotConfirmationModal = ({
     }
   };
 
+  const handleAgendarCliente = () => {
+    setShowNewOrderModal(true);
+  };
+
+  const handleCloseNewOrderModal = () => {
+    setShowNewOrderModal(false);
+  };
+
   return (
-    <Modal show={show} onHide={onHide} centered>
-      <Modal.Header closeButton></Modal.Header>
-      <Modal.Body>
-        <div className="text-center">
-          <h5>¿Quieres marcar este horario como no disponible?</h5>
+    <>
+      <Modal show={show} onHide={onHide} centered>
+        <Modal.Header closeButton>
           <p>
             {selectedSlot &&
               `${new Date(
@@ -54,25 +66,79 @@ const FreeSlotConfirmationModal = ({
                 selectedSlot.end
               )}`}
           </p>
-          <div className="d-flex justify-content-center gap-3 mt-4">
-            <Button
-              variant="danger"
-              onClick={handleConfirm}
-              className={styles.confirmButton}
-            >
-              Sí
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={onHide}
-              className={styles.cancelButton}
-            >
-              No
-            </Button>
+        </Modal.Header>
+
+        <Modal.Body>
+          <div className="text-center">
+            <h5>¿Qué quieres hacer con este horario?</h5>
+
+            <div className="d-flex justify-content-center gap-3 mt-4">
+              <Button
+                variant="outline-success"
+                onClick={handleAgendarCliente}
+                className="d-flex flex-column align-items-center gap-2 flex-fill"
+                style={{
+                  borderColor: "#28a745",
+                  color: "#28a745",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#28a745";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "transparent";
+                  e.target.style.color = "#28a745";
+                }}
+              >
+                <span className="d-none d-md-block">Agendar Cliente</span>
+                <FaPlus size={20} />
+              </Button>
+              <Button
+                variant="outline-danger"
+                onClick={handleMakeNotAvailable}
+                className="d-flex flex-column align-items-center gap-2 flex-fill"
+                style={{
+                  borderColor: "#dc3545",
+                  color: "#dc3545",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#dc3545";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "transparent";
+                  e.target.style.color = "#dc3545";
+                }}
+              >
+                <span className="d-none d-md-block">Marcar No Disponible</span>
+                <FaLock size={20} />
+              </Button>
+            </div>
+
+            <div className="mt-4">
+              <Button
+                variant="secondary"
+                onClick={onHide}
+                className={styles.cancelButton}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
-        </div>
-      </Modal.Body>
-    </Modal>
+        </Modal.Body>
+      </Modal>
+
+      {/* Modal para agendar cliente */}
+      <NewOrderModal
+        show={showNewOrderModal}
+        onHide={handleCloseNewOrderModal}
+        selectedSlot={selectedSlot}
+        formatTime={formatTime}
+        onOrderCreated={onOrderCreated}
+      />
+    </>
   );
 };
 

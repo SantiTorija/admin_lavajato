@@ -146,7 +146,7 @@ const Agenda = () => {
     const timeDisplay = formatTime(arg.event.start, arg.event.end);
 
     // Determinar el tipo de evento y sus colores
-    let backgroundColor = "rgba(0, 150, 167, 0.51)"; // Azul por defecto (eventos de clientes)
+    let backgroundColor = "rgba(0, 150, 167)"; // Azul por defecto (eventos de clientes)
     let borderColor = "rgba(0, 124, 145, 0.5)";
 
     if (arg.event.extendedProps?.admin_created) {
@@ -332,6 +332,16 @@ const Agenda = () => {
     setShowAdminSlotModal(false);
     setSelectedAdminSlot(null);
     document.body.style.overflow = "auto";
+  };
+
+  const handleOrderCreated = () => {
+    // Cerrar todos los modales
+    setShowFreeSlotModal(false);
+    setSelectedFreeSlot(null);
+    document.body.style.overflow = "auto";
+
+    // Refrescar el calendario
+    setRefreshKey((k) => k + 1);
   };
 
   // Nuevo handler para clicks en eventos
@@ -535,6 +545,7 @@ const Agenda = () => {
           setRefreshKey((k) => k + 1); // Refrescar datos
         }}
         formatTime={formatTime}
+        onOrderCreated={handleOrderCreated}
       />
 
       {/* Modal de confirmación para slots reservados por admin */}

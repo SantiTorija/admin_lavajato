@@ -1,14 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import api from "../utils/axiosConfig";
 
 // Thunks
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/admin/login`, {
+      const res = await api.post("/admin/login", {
         email,
         password,
       });
@@ -29,9 +27,7 @@ export const verifyToken = createAsyncThunk(
     try {
       const { token } = getState().auth;
       if (!token) return rejectWithValue("No hay token");
-      const res = await axios.get(`${API_BASE_URL}/admin/verify`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/admin/verify");
       return res.data;
     } catch {
       return rejectWithValue("Token inválido");
@@ -45,13 +41,7 @@ export const logoutUser = createAsyncThunk(
     try {
       const { token } = getState().auth;
       if (token) {
-        await axios.post(
-          `${API_BASE_URL}/admin/logout`,
-          {},
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        await api.post("/admin/logout");
       }
       return true;
     } catch {

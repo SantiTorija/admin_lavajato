@@ -32,6 +32,9 @@ export default function useFetchServicesData() {
       setServices(servicesRes.data);
       setCarTypes(carTypesRes.data);
       setServicePrices(servicePricesRes.data);
+      console.log(servicesRes.data, "ss");
+      console.log(carTypesRes.data, "ct");
+      console.log(servicePricesRes.data, "sp");
     } catch (err) {
       setError(err);
       setServices([]);

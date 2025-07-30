@@ -1,33 +1,33 @@
-import { useCallback } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useState } from "react";
+
+import api from "../utils/axiosConfig";
 
 const useMarkSlotAvailable = () => {
-  const token = useSelector((state) => state.auth.token);
-  const markSlotAvailable = useCallback(
-    async ({ date, slot }) => {
-      try {
-        console.log(slot);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-        // Enviar slot en formato 24h directamente (sin conversión AM/PM)
-        await axios.post(
-          `${import.meta.env.VITE_API_URL}/day/remove-slot`,
-          { date, slot },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Slot marcado como disponible exitosamente");
-        return true;
-      } catch (error) {
-        console.log("ERROR MARCANDO DISPONIBLE:", error);
-        toast.error("Error al marcar el slot como disponible");
-        return false;
-      }
-    },
-    [token]
-  );
+  const markSlotAvailable = async ({ date, slot }) => {
+    setLoading(true);
+    setError(null);
 
-  return { markSlotAvailable };
+    try {
+      const response = await api.post("/day/remove-slot", {
+        date,
+        slot,
+      });
+
+      return response.data;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || "Error al marcar slot como disponible";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { markSlotAvailable, loading, error };
 };
 
 export default useMarkSlotAvailable;

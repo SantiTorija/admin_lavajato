@@ -17,6 +17,7 @@ export default function useFetchServices() {
       const response = await axios.get(API_URL, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log(services);
       setServices(response.data);
     } catch (err) {
       setError(err);

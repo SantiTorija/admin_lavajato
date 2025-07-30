@@ -1,34 +1,30 @@
-import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import api from "../utils/axiosConfig";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/client`;
-
-export default function useFetchClients() {
+const useFetchClients = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const token = useSelector((state) => state.auth.token);
 
-  const fetchClients = useCallback(async () => {
+  const fetchClients = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/client");
       setClients(response.data);
     } catch (err) {
-      setError(err);
-      setClients([]);
+      setError(err.response?.data?.message || "Error al cargar clientes");
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  };
 
   useEffect(() => {
     fetchClients();
-  }, [fetchClients]);
+  }, []);
 
   return { clients, loading, error, refetch: fetchClients };
-}
+};
+
+export default useFetchClients;

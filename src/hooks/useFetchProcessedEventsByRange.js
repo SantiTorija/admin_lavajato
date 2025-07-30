@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { useSelector } from "react-redux";
+import api from "../utils/axiosConfig";
 
 /**
  * Hook optimizado para obtener eventos procesados por rango de fechas
@@ -20,10 +19,7 @@ export default function useFetchProcessedEventsByRange(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Obtener token de autenticación desde Redux
-  const token = useSelector((state) => state.auth.token);
-
-  // Ejecutar fetch cuando cambien las fechas, token o refreshKey
+  // Ejecutar fetch cuando cambien las fechas o refreshKey
   useEffect(() => {
     // Validar que tengamos las fechas necesarias
     if (!startDate || !endDate) {
@@ -35,18 +31,12 @@ export default function useFetchProcessedEventsByRange(
       setError(null);
 
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/day/processed-events-range`,
-          {
-            params: {
-              startDate,
-              endDate,
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await api.get("/day/processed-events-range", {
+          params: {
+            startDate,
+            endDate,
+          },
+        });
 
         // Debug: Verificar si los eventos tienen serviceId y carTypeId
         console.log("🔍 DEBUG - Verificando serviceId y carTypeId en eventos:");
@@ -77,7 +67,7 @@ export default function useFetchProcessedEventsByRange(
     };
 
     fetchProcessedEvents();
-  }, [startDate, endDate, token, refreshKey]);
+  }, [startDate, endDate, refreshKey]);
 
   return {
     events,
@@ -90,22 +80,16 @@ export default function useFetchProcessedEventsByRange(
           setLoading(true);
           setError(null);
           try {
-            const response = await axios.get(
-              `${import.meta.env.VITE_API_URL}/day/processed-events-range`,
-              {
-                params: { startDate, endDate },
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
+            const response = await api.get("/day/processed-events-range", {
+              params: { startDate, endDate },
+            });
             // Debug: Verificar datos en re-fetch
             console.log("🔄 Re-fetch - Verificando serviceId y carTypeId:");
             response.data.forEach((event, index) => {
-              if (event.extendedProps) {
-                console.log(`📋 Re-fetch Evento ${index + 1}:`, {
-                  serviceId: event.extendedProps.serviceId,
-                  carTypeId: event.extendedProps.carTypeId,
-                });
-              }
+              console.log(
+                `📋 Re-fetch Evento ${index + 1} - extendedProps:`,
+                event.extendedProps
+              );
             });
             setEvents(response.data);
           } catch (err) {
