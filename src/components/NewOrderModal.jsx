@@ -195,7 +195,7 @@ const NewOrderModal = ({
 
       <Modal.Body>
         <div className="text-center row justify-content-center gap-3">
-          <div className="col-12 col-md-5 border border-primary rounded-3 p-3">
+          <div className="col-12 col-md-5 d-flex flex-column align-items-start border border-primary rounded-3 p-3">
             <h6>Horario seleccionado</h6>
             <p
               style={{
@@ -210,7 +210,7 @@ const NewOrderModal = ({
             </p>
           </div>
 
-          <div className="col-12 col-md-5 border border-primary rounded-3 p-3 position-relative">
+          <div className="col-12 col-md-5 d-flex flex-column align-items-start border border-primary rounded-3 p-3 position-relative">
             {/* Botón + verde arriba a la derecha */}
             <Button
               className="position-absolute top-0 end-0 m-2"
