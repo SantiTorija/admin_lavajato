@@ -5,6 +5,7 @@ import { useTheme } from "../context/ThemeContext";
 import useFetchClients from "../hooks/useFetchClients";
 import useFetchServicesData from "../hooks/useFetchServicesData";
 import useCreateOrder from "../hooks/useCreateOrder";
+import { useFormatDate } from "../hooks/useFormatDate";
 import styles from "./NewOrderModal.module.css";
 
 /**
@@ -25,6 +26,7 @@ const NewOrderModal = ({
   const { theme } = useTheme();
   const { clients } = useFetchClients();
   const { services, carTypes, servicePrices } = useFetchServicesData();
+  const { formatDate } = useFormatDate();
   const {
     createOrder,
     loading: orderLoading,
@@ -195,11 +197,13 @@ const NewOrderModal = ({
         <div className="text-center row justify-content-center gap-3">
           <div className="col-12 col-md-5 border border-primary rounded-3 p-3">
             <h6>Horario seleccionado</h6>
-            <p className="text-muted">
+            <p
+              style={{
+                color: theme === "dark" ? "#f8f9fa" : "inherit",
+              }}
+            >
               {selectedSlot &&
-                `${new Date(
-                  selectedSlot.start
-                ).toLocaleDateString()} - ${formatTime(
+                `${formatDate(selectedSlot.start)} - ${formatTime(
                   selectedSlot.start,
                   selectedSlot.end
                 )}`}

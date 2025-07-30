@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { FaPlus, FaLock } from "react-icons/fa";
+import { useFormatDate } from "../hooks/useFormatDate";
 import styles from "./FreeSlotConfirmationModal.module.css";
 import NewOrderModal from "./NewOrderModal";
 
@@ -21,6 +22,7 @@ const FreeSlotConfirmationModal = ({
   formatTime,
   onOrderCreated,
 }) => {
+  const { formatDate } = useFormatDate();
   const [showNewOrderModal, setShowNewOrderModal] = useState(false);
 
   const handleMakeNotAvailable = async () => {
@@ -59,9 +61,7 @@ const FreeSlotConfirmationModal = ({
         <Modal.Header closeButton>
           <p>
             {selectedSlot &&
-              `${new Date(
-                selectedSlot.start
-              ).toLocaleDateString()} - ${formatTime(
+              `${formatDate(selectedSlot.start)} - ${formatTime(
                 selectedSlot.start,
                 selectedSlot.end
               )}`}
