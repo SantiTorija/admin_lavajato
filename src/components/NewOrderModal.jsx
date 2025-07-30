@@ -302,7 +302,7 @@ const NewOrderModal = ({
         {/* Formulario de servicios */}
         <div className="p-4 border rounded bg-light mt-3">
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-12 col-lg-6">
               <Form.Group>
                 <Form.Label>Tipo de auto</Form.Label>
                 <Form.Select
