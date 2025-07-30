@@ -112,7 +112,7 @@ const FreeSlotConfirmationModal = ({
                   e.target.style.color = "#dc3545";
                 }}
               >
-                <span className="d-none d-md-block">Marcar No Disponible</span>
+                <span className="d-none d-md-block">Bloquear horario</span>
                 <FaLock size={20} />
               </Button>
             </div>
