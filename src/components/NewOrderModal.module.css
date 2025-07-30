@@ -50,4 +50,42 @@
   color: #6c757d;
   font-style: italic;
   z-index: 1000;
+}
+
+/* Estilos para tema oscuro - más específicos */
+body.theme-dark .dropdownOptions {
+  background: #212529 !important;
+  border-color: #495057 !important;
+  color: #f8f9fa !important;
+}
+
+body.theme-dark .dropdownOption {
+  border-bottom-color: #495057 !important;
+  color: #f8f9fa !important;
+  background-color: #212529 !important;
+}
+
+body.theme-dark .dropdownOption:hover {
+  background-color: #343a40 !important;
+}
+
+body.theme-dark .noResults {
+  background: #212529 !important;
+  border-color: #495057 !important;
+  color: #adb5bd !important;
+}
+
+/* Estilos adicionales para mayor especificidad */
+body.theme-dark .clientSearchContainer .dropdownOptions {
+  background: #212529 !important;
+  border-color: #495057 !important;
+}
+
+body.theme-dark .clientSearchContainer .dropdownOption {
+  color: #f8f9fa !important;
+  background-color: #212529 !important;
+}
+
+body.theme-dark .clientSearchContainer .dropdownOption:hover {
+  background-color: #343a40 !important;
 } 

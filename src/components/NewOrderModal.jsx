@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, InputGroup, Form } from "react-bootstrap";
 import { FaPlus, FaSearch } from "react-icons/fa";
+import { useTheme } from "../context/ThemeContext";
 import useFetchClients from "../hooks/useFetchClients";
 import useFetchServicesData from "../hooks/useFetchServicesData";
 import useCreateOrder from "../hooks/useCreateOrder";
@@ -21,6 +22,7 @@ const NewOrderModal = ({
   formatTime,
   onOrderCreated,
 }) => {
+  const { theme } = useTheme();
   const { clients } = useFetchClients();
   const { services, carTypes, servicePrices } = useFetchServicesData();
   const {
@@ -28,6 +30,13 @@ const NewOrderModal = ({
     loading: orderLoading,
     error: orderError,
   } = useCreateOrder();
+
+  // Debug: verificar tema activo
+  useEffect(() => {
+    console.log("🔍 DEBUG - Tema actual:", theme);
+    console.log("🔍 DEBUG - Clases del body:", document.body.className);
+  }, [theme]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -231,12 +240,36 @@ const NewOrderModal = ({
 
               {/* Dropdown de opciones */}
               {showDropdown && filteredClients.length > 0 && (
-                <div className={styles.dropdownOptions}>
+                <div
+                  className={styles.dropdownOptions}
+                  style={{
+                    background: theme === "dark" ? "#212529" : "white",
+                    borderColor: theme === "dark" ? "#495057" : "#dee2e6",
+                    color: theme === "dark" ? "#f8f9fa" : "inherit",
+                  }}
+                >
                   {filteredClients.map((client) => (
                     <div
                       key={client.id}
                       className={styles.dropdownOption}
                       onClick={() => selectClient(client)}
+                      style={{
+                        color: theme === "dark" ? "#f8f9fa" : "inherit",
+                        backgroundColor:
+                          theme === "dark" ? "#212529" : "transparent",
+                        borderBottomColor:
+                          theme === "dark" ? "#495057" : "#f8f9fa",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (theme === "dark") {
+                          e.target.style.backgroundColor = "#343a40";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (theme === "dark") {
+                          e.target.style.backgroundColor = "#212529";
+                        }
+                      }}
                     >
                       {client.firstname} {client.lastname}
                     </div>
@@ -247,7 +280,14 @@ const NewOrderModal = ({
               {showDropdown &&
                 filteredClients.length === 0 &&
                 searchTerm.length > 0 && (
-                  <div className={styles.noResults}>
+                  <div
+                    className={styles.noResults}
+                    style={{
+                      background: theme === "dark" ? "#212529" : "white",
+                      borderColor: theme === "dark" ? "#495057" : "#dee2e6",
+                      color: theme === "dark" ? "#adb5bd" : "#6c757d",
+                    }}
+                  >
                     No se encontraron clientes
                   </div>
                 )}
