@@ -52,7 +52,7 @@ const NewOrderModal = ({
 
       // Obtener nombres para el cart
       const selectedServiceData = services.find(
-        (s) => s.id === parseInt(selectedService)
+        (s) => s.id === selectedService
       );
 
       // Crear estructura de datos para la orden
@@ -65,11 +65,11 @@ const NewOrderModal = ({
           slot: slot,
           total: total.replace("$", ""), // Remover el símbolo $
           service: selectedServiceData.name,
-          serviceId: parseInt(selectedService),
+          serviceId: selectedService,
         },
         ClientId: selectedClient.id,
-        ServiceId: parseInt(selectedService),
-        CarTypeId: parseInt(selectedCarType),
+        ServiceId: selectedService,
+        CarTypeId: selectedCarType,
       };
 
       console.log("Creando orden con datos:", orderData);
@@ -143,8 +143,7 @@ const NewOrderModal = ({
     if (selectedCarType && selectedService && servicePrices.length > 0) {
       const price = servicePrices.find(
         (sp) =>
-          sp.CarTypeId === parseInt(selectedCarType) &&
-          sp.ServiceId === parseInt(selectedService)
+          sp.CarTypeId === selectedCarType && sp.ServiceId === selectedService
       );
 
       if (price) {
