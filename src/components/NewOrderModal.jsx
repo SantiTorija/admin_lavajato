@@ -6,6 +6,7 @@ import useFetchClients from "../hooks/useFetchClients";
 import useFetchServicesData from "../hooks/useFetchServicesData";
 import useCreateOrder from "../hooks/useCreateOrder";
 import { useFormatDate } from "../hooks/useFormatDate";
+import AddClientModal from "./AddClientModal";
 import styles from "./NewOrderModal.module.css";
 
 /**
@@ -45,10 +46,17 @@ const NewOrderModal = ({
   const [selectedCarType, setSelectedCarType] = useState("");
   const [selectedService, setSelectedService] = useState("");
   const [total, setTotal] = useState("");
+  const [showAddClientModal, setShowAddClientModal] = useState(false);
 
   const handleSave = async () => {
     if (!selectedClient || !selectedCarType || !selectedService || !total) {
       alert("Por favor complete todos los campos");
+      return;
+    }
+
+    // Validaciones adicionales
+    if (!services || services.length === 0) {
+      alert("Error: No se pudieron cargar los servicios");
       return;
     }
 
@@ -62,9 +70,22 @@ const NewOrderModal = ({
       });
 
       // Obtener nombres para el cart
+      console.log("Debug - services:", services);
+      console.log("Debug - selectedService:", selectedService);
+      console.log("Debug - selectedService type:", typeof selectedService);
+
       const selectedServiceData = services.find(
-        (s) => s.id === selectedService
+        (s) => s.id.toString() === selectedService
       );
+
+      console.log("Debug - selectedServiceData:", selectedServiceData);
+
+      // Validar que se encontró el servicio
+      if (!selectedServiceData) {
+        throw new Error(
+          "Servicio no encontrado. Por favor seleccione un servicio válido."
+        );
+      }
 
       // Crear estructura de datos para la orden
       const orderData = {
@@ -137,8 +158,17 @@ const NewOrderModal = ({
   };
 
   const handleAddNewClient = () => {
-    // TODO: Abrir modal para agregar cliente nuevo
-    console.log("Abrir modal para agregar cliente nuevo");
+    setShowAddClientModal(true);
+  };
+
+  const handleClientCreated = (newClient) => {
+    // Seleccionar automáticamente el nuevo cliente creado
+    selectClient(newClient);
+
+    // Refrescar la lista de clientes
+    if (clients && typeof clients.refetch === "function") {
+      clients.refetch();
+    }
   };
 
   const handleCarTypeChange = (e) => {
@@ -188,205 +218,214 @@ const NewOrderModal = ({
   }, []);
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>Agendar Cliente</Modal.Title>
-      </Modal.Header>
+    <>
+      <Modal show={show} onHide={onHide} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Agendar Cliente</Modal.Title>
+        </Modal.Header>
 
-      <Modal.Body>
-        <div className="text-center row justify-content-center gap-3">
-          <div className="col-12 col-md-5 d-flex flex-column align-items-start border border-primary rounded-3 p-3">
-            <h6>Horario seleccionado</h6>
-            <p
-              style={{
-                color: theme === "dark" ? "#f8f9fa" : "inherit",
-              }}
-            >
-              {selectedSlot &&
-                `${formatDate(selectedSlot.start)} - ${formatTime(
-                  selectedSlot.start,
-                  selectedSlot.end
-                )}`}
-            </p>
-          </div>
+        <Modal.Body>
+          <div className="text-center row justify-content-center gap-3">
+            <div className="col-12 col-md-5 d-flex flex-column align-items-start border border-primary rounded-3 p-3">
+              <h6>Horario seleccionado</h6>
+              <p
+                style={{
+                  color: theme === "dark" ? "#f8f9fa" : "inherit",
+                }}
+              >
+                {selectedSlot &&
+                  `${formatDate(selectedSlot.start)} - ${formatTime(
+                    selectedSlot.start,
+                    selectedSlot.end
+                  )}`}
+              </p>
+            </div>
 
-          <div className="col-12 col-md-5 d-flex flex-column align-items-start border border-primary rounded-3 p-3 position-relative">
-            {/* Botón + verde arriba a la derecha */}
-            <Button
-              className="position-absolute top-0 end-0 m-2"
-              variant="success"
-              size="sm"
-              onClick={handleAddNewClient}
-            >
-              <FaPlus />
-            </Button>
+            <div className="col-12 col-md-5 d-flex flex-column align-items-start border border-primary rounded-3 p-3 position-relative">
+              {/* Botón + verde arriba a la derecha */}
+              <Button
+                className="position-absolute top-0 end-0 m-2"
+                variant="success"
+                size="sm"
+                onClick={handleAddNewClient}
+              >
+                <FaPlus />
+              </Button>
 
-            <h6>Cliente</h6>
+              <h6>Cliente</h6>
 
-            {/* Campo de búsqueda autocomplete */}
-            <div className={styles.clientSearchContainer}>
-              <InputGroup>
-                <Form.Control
-                  type="text"
-                  placeholder="Buscar cliente..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  onFocus={handleFocus}
-                  className={styles.searchInput}
-                />
-                <InputGroup.Text
-                  onClick={handleSearchClick}
-                  style={{ cursor: "pointer" }}
-                >
-                  <FaSearch />
-                </InputGroup.Text>
-              </InputGroup>
+              {/* Campo de búsqueda autocomplete */}
+              <div className={styles.clientSearchContainer}>
+                <InputGroup>
+                  <Form.Control
+                    type="text"
+                    placeholder="Buscar cliente..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onFocus={handleFocus}
+                    className={styles.searchInput}
+                  />
+                  <InputGroup.Text
+                    onClick={handleSearchClick}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <FaSearch />
+                  </InputGroup.Text>
+                </InputGroup>
 
-              {/* Dropdown de opciones */}
-              {showDropdown && filteredClients.length > 0 && (
-                <div
-                  className={styles.dropdownOptions}
-                  style={{
-                    background: theme === "dark" ? "#212529" : "white",
-                    borderColor: theme === "dark" ? "#495057" : "#dee2e6",
-                    color: theme === "dark" ? "#f8f9fa" : "inherit",
-                  }}
-                >
-                  {filteredClients.map((client) => (
-                    <div
-                      key={client.id}
-                      className={styles.dropdownOption}
-                      onClick={() => selectClient(client)}
-                      style={{
-                        color: theme === "dark" ? "#f8f9fa" : "inherit",
-                        backgroundColor:
-                          theme === "dark" ? "#212529" : "transparent",
-                        borderBottomColor:
-                          theme === "dark" ? "#495057" : "#f8f9fa",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (theme === "dark") {
-                          e.target.style.backgroundColor = "#343a40";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (theme === "dark") {
-                          e.target.style.backgroundColor = "#212529";
-                        }
-                      }}
-                    >
-                      {client.firstname} {client.lastname}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {showDropdown &&
-                filteredClients.length === 0 &&
-                searchTerm.length > 0 && (
+                {/* Dropdown de opciones */}
+                {showDropdown && filteredClients.length > 0 && (
                   <div
-                    className={styles.noResults}
+                    className={styles.dropdownOptions}
                     style={{
                       background: theme === "dark" ? "#212529" : "white",
                       borderColor: theme === "dark" ? "#495057" : "#dee2e6",
-                      color: theme === "dark" ? "#adb5bd" : "#6c757d",
+                      color: theme === "dark" ? "#f8f9fa" : "inherit",
                     }}
                   >
-                    No se encontraron clientes
+                    {filteredClients.map((client) => (
+                      <div
+                        key={client.id}
+                        className={styles.dropdownOption}
+                        onClick={() => selectClient(client)}
+                        style={{
+                          color: theme === "dark" ? "#f8f9fa" : "inherit",
+                          backgroundColor:
+                            theme === "dark" ? "#212529" : "transparent",
+                          borderBottomColor:
+                            theme === "dark" ? "#495057" : "#f8f9fa",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (theme === "dark") {
+                            e.target.style.backgroundColor = "#343a40";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (theme === "dark") {
+                            e.target.style.backgroundColor = "#212529";
+                          }
+                        }}
+                      >
+                        {client.firstname} {client.lastname}
+                      </div>
+                    ))}
                   </div>
                 )}
+
+                {showDropdown &&
+                  filteredClients.length === 0 &&
+                  searchTerm.length > 0 && (
+                    <div
+                      className={styles.noResults}
+                      style={{
+                        background: theme === "dark" ? "#212529" : "white",
+                        borderColor: theme === "dark" ? "#495057" : "#dee2e6",
+                        color: theme === "dark" ? "#adb5bd" : "#6c757d",
+                      }}
+                    >
+                      No se encontraron clientes
+                    </div>
+                  )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Formulario de servicios */}
-        <div className="p-4 border rounded bg-light mt-3">
-          <div className="row">
-            <div className="col-md-12 col-lg-6">
-              <Form.Group>
-                <Form.Label>Tipo de auto</Form.Label>
-                <Form.Select
-                  disabled={!selectedClient}
-                  value={selectedCarType}
-                  onChange={handleCarTypeChange}
-                >
-                  <option value="">
-                    {!selectedClient
-                      ? "Cree o seleccione un cliente"
-                      : "Seleccione tipo de auto"}
-                  </option>
-                  {carTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
+          {/* Formulario de servicios */}
+          <div className="p-4 border rounded bg-light mt-3">
+            <div className="row">
+              <div className="col-md-12 col-lg-6">
+                <Form.Group>
+                  <Form.Label>Tipo de auto</Form.Label>
+                  <Form.Select
+                    disabled={!selectedClient}
+                    value={selectedCarType}
+                    onChange={handleCarTypeChange}
+                  >
+                    <option value="">
+                      {!selectedClient
+                        ? "Cree o seleccione un cliente"
+                        : "Seleccione tipo de auto"}
                     </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </div>
+                    {carTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </div>
 
-            <div className="col-md-6">
-              <Form.Group>
-                <Form.Label>Servicio</Form.Label>
-                <Form.Select
-                  disabled={!selectedClient}
-                  value={selectedService}
-                  onChange={handleServiceChange}
-                >
-                  <option value="">
-                    {!selectedClient
-                      ? "Cree o seleccione un cliente"
-                      : "Seleccione servicio"}
-                  </option>
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.name}
+              <div className="col-md-6">
+                <Form.Group>
+                  <Form.Label>Servicio</Form.Label>
+                  <Form.Select
+                    disabled={!selectedClient}
+                    value={selectedService}
+                    onChange={handleServiceChange}
+                  >
+                    <option value="">
+                      {!selectedClient
+                        ? "Cree o seleccione un cliente"
+                        : "Seleccione servicio"}
                     </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
+                    {services.map((service) => (
+                      <option key={service.id} value={service.id}>
+                        {service.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </div>
+            </div>
+
+            <div className="row mt-3">
+              <div className="col-md-6">
+                <Form.Group>
+                  <Form.Label>Total</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={total}
+                    readOnly
+                    placeholder="Se calculará automáticamente"
+                  />
+                </Form.Group>
+              </div>
             </div>
           </div>
 
-          <div className="row mt-3">
-            <div className="col-md-6">
-              <Form.Group>
-                <Form.Label>Total</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={total}
-                  readOnly
-                  placeholder="Se calculará automáticamente"
-                />
-              </Form.Group>
-            </div>
-          </div>
-        </div>
+          {/* Mostrar error si existe */}
+          {orderError && (
+            <div className="alert alert-danger mt-3">{orderError}</div>
+          )}
+        </Modal.Body>
 
-        {/* Mostrar error si existe */}
-        {orderError && (
-          <div className="alert alert-danger mt-3">{orderError}</div>
-        )}
-      </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={onHide}>
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            disabled={
+              orderLoading ||
+              !selectedClient ||
+              !selectedCarType ||
+              !selectedService ||
+              !total
+            }
+          >
+            {orderLoading ? "Guardando..." : "Guardar"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          Cancelar
-        </Button>
-        <Button
-          variant="primary"
-          onClick={handleSave}
-          disabled={
-            orderLoading ||
-            !selectedClient ||
-            !selectedCarType ||
-            !selectedService ||
-            !total
-          }
-        >
-          {orderLoading ? "Guardando..." : "Guardar"}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+      {/* Modal para agregar nuevo cliente */}
+      <AddClientModal
+        show={showAddClientModal}
+        onHide={() => setShowAddClientModal(false)}
+        onClientCreated={handleClientCreated}
+      />
+    </>
   );
 };
 

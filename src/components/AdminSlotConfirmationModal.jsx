@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
+import { FaCheck, FaLock } from "react-icons/fa";
 import styles from "./AdminSlotConfirmationModal.module.css";
 
 /**
@@ -56,18 +57,20 @@ const AdminSlotConfirmationModal = ({
           </p>
           <div className="d-flex justify-content-center gap-3 mt-4">
             <Button
-              variant="success"
-              onClick={handleConfirm}
-              className={styles.confirmButton}
-            >
-              Sí
-            </Button>
-            <Button
               variant="secondary"
               onClick={onHide}
               className={styles.cancelButton}
             >
+              <FaLock className="me-2" />
               No
+            </Button>
+            <Button
+              variant="success"
+              onClick={handleConfirm}
+              className={styles.confirmButton}
+            >
+              <FaCheck className="me-2" />
+              Sí
             </Button>
           </div>
         </div>

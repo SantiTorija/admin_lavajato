@@ -228,3 +228,73 @@ input::placeholder, textarea::placeholder {
     color: #ccc !important; /* gris claro para temas oscuros */
   }
 }
+
+.swal-dark .swal2-cancel {
+  /* background-color: #3085d6 !important; */
+  /* border-color: #3085d6 !important; */
+}
+
+/* Estilos para SweetAlert2 con tema oscuro */
+.swal-dark {
+  background-color: #2d3748 !important;
+  color: #ffffff !important;
+}
+
+.swal-dark .swal2-title {
+  color: #ffffff !important;
+}
+
+.swal-dark .swal2-content {
+  color: #e2e8f0 !important;
+}
+
+.swal-dark .swal2-confirm {
+  background-color: #d33 !important;
+  border-color: #d33 !important;
+}
+
+.swal-dark .swal2-cancel {
+  background-color: #6d6d6d !important;
+  border-color: #575757  !important;
+}
+
+/* Estilos para SweetAlert2 con tema claro */
+.swal-light {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.swal-light .swal2-title {
+  color: #000000 !important;
+}
+
+.swal-light .swal2-content {
+  color: #4a5568 !important;
+}
+
+/* Estilos para botones de SweetAlert2 con ancho igual */
+.swal-confirm-button,
+.swal-cancel-button {
+  width: 120px !important;
+  min-width: 120px !important;
+  flex: 1 !important;
+  margin: 0 5px !important;
+}
+
+.swal-cancel-button {
+  background-color: #5a6268 !important;
+  border-color: #545b62 !important;
+  color: white !important;
+}
+
+.swal-cancel-button:hover {
+  background-color: #545b62 !important;
+  border-color: #4e555b !important;
+  color: white !important;
+}
+
+.swal2-actions {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}

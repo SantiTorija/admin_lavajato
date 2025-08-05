@@ -76,20 +76,7 @@ const FreeSlotConfirmationModal = ({
               <Button
                 variant="outline-success"
                 onClick={handleAgendarCliente}
-                className="d-flex flex-column align-items-center gap-2 flex-fill"
-                style={{
-                  borderColor: "#28a745",
-                  color: "#28a745",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#28a745";
-                  e.target.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "transparent";
-                  e.target.style.color = "#28a745";
-                }}
+                className={`d-flex flex-column align-items-center gap-2 flex-fill ${styles.agendarButton}`}
               >
                 <span className="d-none d-md-block">Agendar Cliente</span>
                 <FaPlus size={20} />
@@ -97,20 +84,7 @@ const FreeSlotConfirmationModal = ({
               <Button
                 variant="outline-danger"
                 onClick={handleMakeNotAvailable}
-                className="d-flex flex-column align-items-center gap-2 flex-fill"
-                style={{
-                  borderColor: "#dc3545",
-                  color: "#dc3545",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#dc3545";
-                  e.target.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "transparent";
-                  e.target.style.color = "#dc3545";
-                }}
+                className={`d-flex flex-column align-items-center gap-2 flex-fill ${styles.bloquearButton}`}
               >
                 <span className="d-none d-md-block">Bloquear horario</span>
                 <FaLock size={20} />
