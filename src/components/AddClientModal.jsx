@@ -25,6 +25,8 @@ const AddClientModal = ({ show, onHide, onClientCreated }) => {
     carTypeId: "",
   });
 
+  const [addEmailLater, setAddEmailLater] = useState(false);
+
   const [validationErrors, setValidationErrors] = useState({});
 
   // Códigos de país más comunes
@@ -62,6 +64,7 @@ const AddClientModal = ({ show, onHide, onClientCreated }) => {
         carTypeId: "",
       });
       setValidationErrors({});
+      setAddEmailLater(false);
     }
   }, [show]);
 
@@ -92,10 +95,13 @@ const AddClientModal = ({ show, onHide, onClientCreated }) => {
       errors.lastname = "El apellido es requerido";
     }
 
-    if (!formData.email.trim()) {
-      errors.email = "El email es requerido";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "El email no es válido";
+    // Solo validar email si no está marcado el checkbox
+    if (!addEmailLater) {
+      if (!formData.email.trim()) {
+        errors.email = "El email es requerido";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = "El email no es válido";
+      }
     }
 
     if (formData.carTypeId && !formData.marca.trim()) {
@@ -118,6 +124,14 @@ const AddClientModal = ({ show, onHide, onClientCreated }) => {
     }
 
     try {
+      // Generar email falso si el checkbox está marcado
+      let emailToSend = formData.email.trim();
+      if (addEmailLater) {
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substring(2, 8);
+        emailToSend = `temp_${timestamp}_${randomId}@temporary.com`;
+      }
+
       // Preparar datos del carro
       const carData = formData.carTypeId
         ? {
@@ -138,7 +152,7 @@ const AddClientModal = ({ show, onHide, onClientCreated }) => {
       const clientData = {
         firstname: formData.firstname.trim(),
         lastname: formData.lastname.trim(),
-        email: formData.email.trim(),
+        email: emailToSend,
         phone: fullPhone,
         ...carData,
       };
@@ -215,10 +229,21 @@ const AddClientModal = ({ show, onHide, onClientCreated }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   isInvalid={!!validationErrors.email}
+                  disabled={addEmailLater}
                 />
                 <Form.Control.Feedback type="invalid">
                   {validationErrors.email}
                 </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="checkbox"
+                  id="addEmailLater"
+                  label="Agregar email más tarde"
+                  checked={addEmailLater}
+                  onChange={(e) => setAddEmailLater(e.target.checked)}
+                />
               </Form.Group>
 
               <Form.Group className="mb-3">

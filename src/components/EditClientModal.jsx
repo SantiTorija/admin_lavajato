@@ -27,6 +27,7 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
   });
 
   const [validationErrors, setValidationErrors] = useState({});
+  const [addEmailLater, setAddEmailLater] = useState(false);
 
   // Códigos de país más comunes
   const countryCodes = [
@@ -81,6 +82,7 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
         carTypeId: client.car?.carTypeId?.toString() || "",
       });
       setValidationErrors({});
+      setAddEmailLater(false);
     }
   }, [show, client]);
 
@@ -111,10 +113,13 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
       errors.lastname = "El apellido es requerido";
     }
 
-    if (!formData.email.trim()) {
-      errors.email = "El email es requerido";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "El email no es válido";
+    // Solo validar email si no está marcado el checkbox
+    if (!addEmailLater) {
+      if (!formData.email.trim()) {
+        errors.email = "El email es requerido";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = "El email no es válido";
+      }
     }
 
     if (formData.carTypeId && !formData.marca.trim()) {
@@ -137,6 +142,14 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
     }
 
     try {
+      // Generar email falso si el checkbox está marcado
+      let emailToSend = formData.email.trim();
+      if (addEmailLater) {
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substring(2, 8);
+        emailToSend = `temp_${timestamp}_${randomId}@temporary.com`;
+      }
+
       // Preparar datos del carro
       const carData = formData.carTypeId
         ? {
@@ -157,7 +170,7 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
       const clientData = {
         firstname: formData.firstname.trim(),
         lastname: formData.lastname.trim(),
-        email: formData.email.trim(),
+        email: emailToSend,
         phone: fullPhone,
         ...carData,
       };
@@ -236,10 +249,21 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   isInvalid={!!validationErrors.email}
+                  disabled={addEmailLater}
                 />
                 <Form.Control.Feedback type="invalid">
                   {validationErrors.email}
                 </Form.Control.Feedback>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="checkbox"
+                  id="addEmailLater"
+                  label="Agregar email más tarde"
+                  checked={addEmailLater}
+                  onChange={(e) => setAddEmailLater(e.target.checked)}
+                />
               </Form.Group>
 
               <Form.Group className="mb-3">
