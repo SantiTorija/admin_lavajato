@@ -6,15 +6,32 @@ import axios from "axios";
  * @param {number} carTypeId - ID del tipo de auto
  * @param {number} serviceId - ID del servicio
  * @param {boolean} shouldFetch - Si debe hacer la llamada (ej: cuando el modal está abierto)
+ * @param {number} refreshKey - Key para forzar re-fetch
  * @returns {object} - Objeto con servicePrice, loading y error
  */
-export const useServicePrice = (carTypeId, serviceId, shouldFetch = false) => {
+export const useServicePrice = (
+  carTypeId,
+  serviceId,
+  shouldFetch = false,
+  refreshKey = 0
+) => {
   const [servicePrice, setServicePrice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchServicePrice = async () => {
+      console.log(
+        "🔄 useServicePrice ejecutándose - carTypeId:",
+        carTypeId,
+        "serviceId:",
+        serviceId,
+        "shouldFetch:",
+        shouldFetch,
+        "refreshKey:",
+        refreshKey
+      );
+
       // Solo hacer la llamada si tenemos los IDs y shouldFetch es true
       if (carTypeId && serviceId && shouldFetch) {
         setLoading(true);
@@ -41,7 +58,7 @@ export const useServicePrice = (carTypeId, serviceId, shouldFetch = false) => {
     };
 
     fetchServicePrice();
-  }, [carTypeId, serviceId, shouldFetch]);
+  }, [carTypeId, serviceId, shouldFetch, refreshKey]);
 
   return {
     servicePrice,
