@@ -92,6 +92,20 @@ const OrderDetailsModal = ({
   // Marca de cambios para refrescar agenda al cerrar
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Estado para forzar re-render del modal
+  const [modalKey, setModalKey] = useState(0);
+
+  // Función para refrescar el contenido del modal
+  const refreshModalContent = () => {
+    setModalKey((prev) => prev + 1);
+    setHasChanges(true);
+
+    // Si hay callback de actualización, ejecutarlo inmediatamente
+    if (onOrderUpdated) {
+      onOrderUpdated();
+    }
+  };
+
   // Hook para eliminar orden con confirmación
   const { handleDeleteWithConfirmation, loading: deleteLoading } =
     useDeleteOrderWithConfirmation(() => {
@@ -122,6 +136,7 @@ const OrderDetailsModal = ({
   return (
     <>
       <Modal
+        key={modalKey}
         show={show}
         onHide={onHide}
         onExited={() => {
@@ -191,8 +206,9 @@ const OrderDetailsModal = ({
                         if (result?.success) {
                           setIsEditingCarType(false);
                           setCurrentCarTypeId(parsedId);
-                          setHasChanges(true);
                           toast.success("Tipo de auto actualizado");
+                          // Refrescar el contenido del modal
+                          refreshModalContent();
                         }
                       }}
                       disabled={updateLoading}
@@ -278,8 +294,9 @@ const OrderDetailsModal = ({
                           if (result?.success) {
                             setIsEditingService(false);
                             setCurrentServiceId(parsedServiceId);
-                            setHasChanges(true);
                             toast.success("Servicio actualizado");
+                            // Refrescar el contenido del modal
+                            refreshModalContent();
                           }
                         } catch (e) {
                           console.error("Error actualizando servicio:", e);
