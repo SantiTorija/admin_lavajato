@@ -211,6 +211,7 @@ const OrderDetailsModal = ({
                         if (result?.success) {
                           setIsEditingCarType(false);
                           setCurrentCarTypeId(parsedId);
+                          setSelectedCarTypeId(String(parsedId)); // Sincronizar el select
                           toast.success("Tipo de auto actualizado");
                           // Refrescar el contenido del modal
                           refreshModalContent();
@@ -299,6 +300,7 @@ const OrderDetailsModal = ({
                           if (result?.success) {
                             setIsEditingService(false);
                             setCurrentServiceId(parsedServiceId);
+                            setSelectedServiceId(String(parsedServiceId)); // Sincronizar el select
                             toast.success("Servicio actualizado");
                             // Refrescar el contenido del modal
                             refreshModalContent();
