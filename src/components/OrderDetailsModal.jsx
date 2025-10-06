@@ -76,13 +76,6 @@ const OrderDetailsModal = ({
 
   useEffect(() => {
     if (show) {
-      console.log("📂 Modal abierto - eventDetails recibidos:", eventDetails);
-      console.log(
-        "📂 carTypeId:",
-        eventDetails?.carTypeId,
-        "serviceId:",
-        eventDetails?.serviceId
-      );
       setIsEditingCarType(false);
       setSelectedCarTypeId(
         eventDetails?.carTypeId ? String(eventDetails.carTypeId) : ""
@@ -96,7 +89,7 @@ const OrderDetailsModal = ({
       setCurrentServiceId(eventDetails?.serviceId ?? null);
       setHasChanges(false);
     }
-  }, [show, eventDetails?.carTypeId, eventDetails?.serviceId, eventDetails]);
+  }, [show, eventDetails?.carTypeId, eventDetails?.serviceId]);
 
   const { updateOrder, loading: updateLoading } = useUpdateOrder();
 
@@ -108,17 +101,13 @@ const OrderDetailsModal = ({
 
   // Función para refrescar el contenido del modal
   const refreshModalContent = () => {
-    console.log("🔄 refreshModalContent ejecutándose");
     setModalKey((prev) => prev + 1);
     setPriceRefreshKey((prev) => prev + 1); // Forzar re-fetch del precio
     setHasChanges(true);
 
     // Si hay callback de actualización, ejecutarlo inmediatamente
     if (onOrderUpdated) {
-      console.log("📞 Llamando onOrderUpdated");
       onOrderUpdated();
-    } else {
-      console.log("❌ onOrderUpdated no está disponible");
     }
   };
 
@@ -220,14 +209,6 @@ const OrderDetailsModal = ({
                           parsedId
                         );
                         if (result?.success) {
-                          console.log(
-                            "✅ Tipo de auto actualizado exitosamente - parsedId:",
-                            parsedId
-                          );
-                          console.log(
-                            "📊 eventDetails antes del refresh:",
-                            eventDetails
-                          );
                           setIsEditingCarType(false);
                           setCurrentCarTypeId(parsedId);
                           setSelectedCarTypeId(String(parsedId)); // Sincronizar el select
@@ -317,14 +298,6 @@ const OrderDetailsModal = ({
                             payload
                           );
                           if (result?.success) {
-                            console.log(
-                              "✅ Servicio actualizado exitosamente - parsedServiceId:",
-                              parsedServiceId
-                            );
-                            console.log(
-                              "📊 eventDetails antes del refresh:",
-                              eventDetails
-                            );
                             setIsEditingService(false);
                             setCurrentServiceId(parsedServiceId);
                             setSelectedServiceId(String(parsedServiceId)); // Sincronizar el select
