@@ -37,25 +37,6 @@ export default function useFetchProcessedEventsByRange(
             endDate,
           },
         });
-
-        // Debug: Verificar si los eventos tienen serviceId y carTypeId
-        console.log("🔍 DEBUG - Verificando serviceId y carTypeId en eventos:");
-        response.data.forEach((event, index) => {
-          console.log(`📋 Evento ${index + 1} - Estructura completa:`, event);
-          if (event.extendedProps) {
-            console.log(
-              `📋 Evento ${index + 1} - extendedProps:`,
-              event.extendedProps
-            );
-            console.log(
-              `📋 Evento ${index + 1} - Claves en extendedProps:`,
-              Object.keys(event.extendedProps)
-            );
-          } else {
-            console.log(`📋 Evento ${index + 1} - NO tiene extendedProps`);
-          }
-        });
-
         setEvents(response.data);
       } catch (err) {
         console.error("❌ Error fetching processed events by range:", err);

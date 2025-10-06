@@ -533,6 +533,7 @@ const Agenda = () => {
         onHide={closeOrderModal}
         eventDetails={eventDetails}
         onOrderDeleted={() => setRefreshKey((k) => k + 1)}
+        onOrderUpdated={() => setRefreshKey((k) => k + 1)}
       />
 
       {/* Modal de confirmación para slots libres */}
