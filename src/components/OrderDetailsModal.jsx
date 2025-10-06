@@ -57,9 +57,6 @@ const OrderDetailsModal = ({
       ? Number(currentServiceId)
       : null;
 
-  // Estado para forzar re-fetch del hook useServicePrice
-  const [priceRefreshKey, setPriceRefreshKey] = useState(0);
-
   const {
     servicePrice,
     loading: loadingPrice,
@@ -67,8 +64,7 @@ const OrderDetailsModal = ({
   } = useServicePrice(
     currentCarTypeId,
     effectiveServiceId,
-    show, // Solo hacer fetch cuando el modal está abierto
-    priceRefreshKey // Key para forzar re-fetch
+    show // Solo hacer fetch cuando el modal está abierto
   );
 
   // Cargar tipos de auto y servicios
@@ -99,13 +95,11 @@ const OrderDetailsModal = ({
   // Estado para forzar re-render del modal
   const [modalKey, setModalKey] = useState(0);
 
-  // Función para refrescar el contenido del modal
+  // Función para refrescar el modal sin cerrarlo
   const refreshModalContent = () => {
+    // Forzar re-render del modal
     setModalKey((prev) => prev + 1);
-    setPriceRefreshKey((prev) => prev + 1); // Forzar re-fetch del precio
-    setHasChanges(true);
-
-    // Si hay callback de actualización, ejecutarlo inmediatamente
+    // Forzar re-fetch de datos
     if (onOrderUpdated) {
       onOrderUpdated();
     }
