@@ -1,0 +1,27 @@
+.searchContainer {
+width: 40%;
+}
+
+@media (max-width: 992px) {
+    .searchContainer {
+        width: 60%;
+    }
+}
+
+@media (max-width: 768px) {
+    .searchContainer {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .searchContainer {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .searchContainer {
+        width: 100%;
+    }
+}

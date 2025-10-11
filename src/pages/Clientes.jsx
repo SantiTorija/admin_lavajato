@@ -1,22 +1,44 @@
-import React, { useState } from "react";
-import { Table, Card, Container, Badge, Alert, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Card,
+  Container,
+  Badge,
+  Alert,
+  Button,
+  Form,
+  InputGroup,
+} from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import useFetchClients from "../hooks/useFetchClients";
 import useDeleteClient from "../hooks/useDeleteClient";
-import { FaSyncAlt, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { FaSyncAlt, FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
 import Loader from "../components/Loader";
 import EditClientModal from "../components/EditClientModal";
 import AddClientModal from "../components/AddClientModal";
 import { useTheme } from "../context/ThemeContext";
+import styles from "./clientes.module.css";
 
 const Clientes = () => {
-  const { clients, loading, error, refetch } = useFetchClients();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const { clients, loading, error, refetch } =
+    useFetchClients(debouncedSearchTerm);
   const { deleteClient, loading: deleteLoading } = useDeleteClient();
   const { theme } = useTheme();
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [showAddClientModal, setShowAddClientModal] = useState(false);
+
+  // Debounce para optimizar las búsquedas
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleEditClient = (client) => {
     setSelectedClient(client);
@@ -103,6 +125,21 @@ const Clientes = () => {
             <span className="ms-2 d-none d-md-inline">Refrescar</span>
           </Button>
         </div>
+      </div>
+
+      {/* Barra de búsqueda */}
+      <div className={`mb-4 ${styles.searchContainer}`}>
+        <InputGroup>
+          <InputGroup.Text>
+            <FaSearch />
+          </InputGroup.Text>
+          <Form.Control
+            type="text"
+            placeholder="Buscar por nombre, apellido, email o teléfono..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </InputGroup>
       </div>
       <Card>
         <Card.Body>
