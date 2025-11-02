@@ -14,7 +14,9 @@ const useFetchNewClientsByMonth = () => {
       setError(null);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/client/new-by-month`,
+          `${
+            import.meta.env.VITE_API_URL
+          }/analytics/clients/client-quantity-by-month`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setData(res.data);

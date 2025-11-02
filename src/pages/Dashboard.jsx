@@ -51,7 +51,7 @@ const Dashboard = () => {
               padding: 16,
             }}
           >
-            <h5 className="mb-3">Crecimiento de clientes (últimos 5 meses)</h5>
+            <h5 className="mb-3">Crecimiento de clientes</h5>
             {loading && <div>Cargando gráfico...</div>}
             {error && <div>Error al cargar datos</div>}
             {data && (
@@ -61,7 +61,6 @@ const Dashboard = () => {
                     labels: Object.keys(data),
                     datasets: [
                       {
-                        label: "Clientes nuevos",
                         data: Object.values(data),
                         borderColor: "#007bff",
                         backgroundColor: "rgba(0,123,255,0.1)",
@@ -74,7 +73,7 @@ const Dashboard = () => {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                      legend: { display: true, position: "top" },
+                      legend: { display: false },
                       title: { display: false },
                     },
                     scales: {
