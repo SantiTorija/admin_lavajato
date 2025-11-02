@@ -71,7 +71,8 @@ const OrderDetailsModal = ({
   const { carTypes, services } = useFetchServicesData();
 
   useEffect(() => {
-    if (show) {
+    if (show && eventDetails) {
+      // Resetear estados cuando se abre el modal con nuevos datos
       setIsEditingCarType(false);
       setSelectedCarTypeId(
         eventDetails?.carTypeId ? String(eventDetails.carTypeId) : ""
@@ -84,8 +85,22 @@ const OrderDetailsModal = ({
       );
       setCurrentServiceId(eventDetails?.serviceId ?? null);
       setHasChanges(false);
+    } else if (!show) {
+      // Limpiar estados cuando el modal se cierra
+      setCurrentCarTypeId(null);
+      setCurrentServiceId(null);
+      setIsEditingCarType(false);
+      setIsEditingService(false);
+      setSelectedCarTypeId("");
+      setSelectedServiceId("");
     }
-  }, [show, eventDetails?.carTypeId, eventDetails?.serviceId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    show,
+    eventDetails?.carTypeId,
+    eventDetails?.serviceId,
+    eventDetails?.orderId,
+  ]);
 
   const { updateOrder, loading: updateLoading } = useUpdateOrder();
 

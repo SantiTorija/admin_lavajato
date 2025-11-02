@@ -20,6 +20,17 @@ export const useServicePrice = (
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Reset inmediato cuando shouldFetch es false o faltan datos
+    if (!shouldFetch || !carTypeId || !serviceId) {
+      setServicePrice(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    // Flag para cancelar el request si los parámetros cambian
+    let isCancelled = false;
+
     const fetchServicePrice = async () => {
       console.log(
         "🔄 useServicePrice ejecutándose - carTypeId:",
@@ -32,32 +43,43 @@ export const useServicePrice = (
         refreshKey
       );
 
-      // Solo hacer la llamada si tenemos los IDs y shouldFetch es true
-      if (carTypeId && serviceId && shouldFetch) {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await axios.get(
-            `${
-              import.meta.env.VITE_API_URL
-            }/service-price/car-type/${carTypeId}/service/${serviceId}`
-          );
+      setLoading(true);
+      setError(null);
+      // Limpiar precio anterior antes de hacer el fetch para evitar mostrar precio incorrecto
+      setServicePrice(null);
+
+      try {
+        const response = await axios.get(
+          `${
+            import.meta.env.VITE_API_URL
+          }/service-price/car-type/${carTypeId}/service/${serviceId}`
+        );
+
+        // Solo actualizar si el request no fue cancelado
+        if (!isCancelled) {
           console.log("💰 Precio obtenido:", response.data);
           setServicePrice(response.data);
-        } catch (err) {
+        }
+      } catch (err) {
+        // Solo actualizar error si el request no fue cancelado
+        if (!isCancelled) {
           console.error("❌ Error obteniendo precio:", err);
           setError(err);
           setServicePrice(null);
-        } finally {
+        }
+      } finally {
+        if (!isCancelled) {
           setLoading(false);
         }
-      } else {
-        setServicePrice(null);
-        setError(null);
       }
     };
 
     fetchServicePrice();
+
+    // Cleanup: marcar como cancelado cuando cambian los parámetros o se desmonta
+    return () => {
+      isCancelled = true;
+    };
   }, [carTypeId, serviceId, shouldFetch, refreshKey]);
 
   return {
