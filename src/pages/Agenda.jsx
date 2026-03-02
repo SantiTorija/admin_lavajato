@@ -405,6 +405,7 @@ const Agenda = () => {
         extendedProps.vehiculo?.carTypeId ||
         extendedProps.tipoAuto?.id ||
         null,
+      orderStatus: extendedProps.orderStatus || "activa",
     };
   };
 

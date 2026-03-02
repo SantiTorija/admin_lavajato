@@ -229,7 +229,7 @@ const Servicios = () => {
                         ) : (
                           <>
                             <span
-                              className="fw-bold mb-2"
+                              className="fw-bold d-block mb-1"
                               style={{ fontSize: "1.1rem" }}
                             >
                               {service.name}
@@ -249,7 +249,7 @@ const Servicios = () => {
                                 <FaEdit />
                               </Button>
                             </span>
-                            <span className="text-muted d-none d-md-block">
+                            <span className="text-muted small d-block">
                               {service.description || "-"}
                             </span>
                           </>
@@ -266,7 +266,6 @@ const Servicios = () => {
                       >
                         <Table
                           size="sm"
-                          bordered
                           hover
                           responsive
                           className="mb-0"
@@ -405,7 +404,7 @@ const Servicios = () => {
             </Form.Group>
             <div className="mb-3">
               <Form.Label>Precios por tipo de auto</Form.Label>
-              <Table size="sm" bordered hover responsive className="mb-0">
+              <Table size="sm" hover responsive className="mb-0">
                 <thead>
                   <tr>
                     <th>Tipo de auto</th>

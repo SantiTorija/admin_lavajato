@@ -24,6 +24,8 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
     marca: "",
     modelo: "",
     carTypeId: "",
+    clientStatus: "activo",
+    statusReason: "",
   });
 
   const [validationErrors, setValidationErrors] = useState({});
@@ -80,6 +82,8 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
         marca: client.car?.marca || "",
         modelo: client.car?.modelo || "",
         carTypeId: client.car?.carTypeId?.toString() || "",
+        clientStatus: client.clientStatus || "activo",
+        statusReason: client.statusReason || "",
       });
       setValidationErrors({});
       setAddEmailLater(false);
@@ -172,6 +176,8 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
         lastname: formData.lastname.trim(),
         email: emailToSend,
         phone: fullPhone,
+        clientStatus: formData.clientStatus,
+        statusReason: formData.statusReason.trim() || null,
         ...carData,
       };
 
@@ -290,6 +296,35 @@ const EditClientModal = ({ show, onHide, client, onClientUpdated }) => {
                     placeholder="Número de teléfono (opcional)"
                   />
                 </div>
+              </Form.Group>
+
+              <h6 className="mb-3 mt-3">Estado del cliente</h6>
+              {client.noShowCount !== undefined && (
+                <Form.Text className="d-block mb-2 text-muted">
+                  Faltas sin aviso: {client.noShowCount}
+                </Form.Text>
+              )}
+              <Form.Group className="mb-3">
+                <Form.Label>Estado</Form.Label>
+                <Form.Select
+                  name="clientStatus"
+                  value={formData.clientStatus}
+                  onChange={handleInputChange}
+                >
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                  <option value="vetado">Vetado</option>
+                </Form.Select>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Motivo del estado (opcional)</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="statusReason"
+                  value={formData.statusReason}
+                  onChange={handleInputChange}
+                  placeholder="Motivo del estado"
+                />
               </Form.Group>
             </div>
 

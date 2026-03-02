@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Form } from "react-bootstrap";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import { useFormatDate } from "../hooks/useFormatDate";
 import { useServicePrice } from "../hooks/useServicePrice";
 import { useDeleteOrderWithConfirmation } from "../hooks/useDeleteOrderWithConfirmation";
+import { useUpdateOrderStatus } from "../hooks/useUpdateOrderStatus";
 import {
   FaPhone,
   FaUser,
@@ -103,6 +105,10 @@ const OrderDetailsModal = ({
   ]);
 
   const { updateOrder, loading: updateLoading } = useUpdateOrder();
+  const {
+    updateOrderStatus,
+    loading: statusLoading,
+  } = useUpdateOrderStatus();
 
   // Marca de cambios para refrescar agenda al cerrar
   const [hasChanges, setHasChanges] = useState(false);
@@ -145,6 +151,44 @@ const OrderDetailsModal = ({
 
     // El hook ya maneja todo: validación, confirmación, eliminación y callbacks
     console.log("🗑️ Resultado de eliminación:", result);
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!eventDetails?.orderId) return;
+
+    if (newStatus === "cancelada") {
+      const result = await Swal.fire({
+        title: "¿Confirmar cancelación?",
+        text: "Se liberará el horario y la reserva desaparecerá de la agenda.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Sí, cancelar",
+        cancelButtonText: "No",
+      });
+      if (!result.isConfirmed) return;
+    }
+
+    const result = await updateOrderStatus(eventDetails.orderId, newStatus);
+    if (result?.success) {
+      toast.success("Estado actualizado");
+      setHasChanges(true);
+      refreshModalContent();
+      if (newStatus === "cancelada") {
+        onHide();
+        if (onOrderUpdated) onOrderUpdated();
+      }
+    } else {
+      toast.error(result?.error || "Error al actualizar estado");
+    }
+  };
+
+  const ORDER_STATUS_LABELS = {
+    activa: "Activa",
+    completada: "Completada",
+    cancelada: "Cancelada",
+    "faltó_sin_aviso": "Faltó sin aviso",
   };
 
   return (
@@ -274,7 +318,31 @@ const OrderDetailsModal = ({
               </div>
             </div>
 
-            <div className="row"></div>
+            <div className="row">
+              {eventDetails?.orderId && (
+                <div className="col-12 border border-primary rounded-3 p-3 mt-1">
+                  <h6 className="mb-2">Estado de la reserva</h6>
+                  <Form.Select
+                    value={eventDetails?.orderStatus || "activa"}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    disabled={statusLoading}
+                  >
+                    <option value="activa">
+                      {ORDER_STATUS_LABELS.activa}
+                    </option>
+                    <option value="completada">
+                      {ORDER_STATUS_LABELS.completada}
+                    </option>
+                    <option value="cancelada">
+                      {ORDER_STATUS_LABELS.cancelada}
+                    </option>
+                    <option value="faltó_sin_aviso">
+                      {ORDER_STATUS_LABELS["faltó_sin_aviso"]}
+                    </option>
+                  </Form.Select>
+                </div>
+              )}
+            </div>
 
             <div className="row">
               <div className="col-12 border border-primary rounded-3 p-3 mt-1">

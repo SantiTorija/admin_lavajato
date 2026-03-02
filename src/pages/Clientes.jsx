@@ -3,11 +3,11 @@ import {
   Table,
   Card,
   Container,
-  Badge,
   Alert,
   Button,
   Form,
   InputGroup,
+  Pagination,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -20,11 +20,15 @@ import AddClientModal from "../components/AddClientModal";
 import { useTheme } from "../context/ThemeContext";
 import styles from "./clientes.module.css";
 
+const LIMIT_OPTIONS = [10, 20, 50];
+
 const Clientes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const { clients, loading, error, refetch } =
-    useFetchClients(debouncedSearchTerm);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const { clients, total, totalPages, loading, error, refetch } =
+    useFetchClients(debouncedSearchTerm, page, limit);
   const { deleteClient, loading: deleteLoading } = useDeleteClient();
   const { theme } = useTheme();
   const [showEditModal, setShowEditModal] = useState(false);
@@ -39,6 +43,19 @@ const Clientes = () => {
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Reset a página 1 cuando cambia la búsqueda
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
+  const handleLimitChange = (e) => {
+    setLimit(Number(e.target.value));
+    setPage(1);
+  };
+
+  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, total);
 
   const handleEditClient = (client) => {
     setSelectedClient(client);
@@ -146,7 +163,25 @@ const Clientes = () => {
           {loading && <Loader />}
           {error && <Alert variant="danger">Error al cargar clientes</Alert>}
           {!loading && !error && (
-            <Table striped bordered hover responsive>
+            <>
+            <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+              <span className="text-muted small">
+                Mostrando {startItem}-{endItem} de {total} clientes
+              </span>
+              <Form.Select
+                size="sm"
+                value={limit}
+                onChange={handleLimitChange}
+                style={{ width: "auto" }}
+              >
+                {LIMIT_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt} por página
+                  </option>
+                ))}
+              </Form.Select>
+            </div>
+            <Table hover responsive>
               <thead>
                 <tr>
                   <th>Nombre</th>
@@ -197,6 +232,48 @@ const Clientes = () => {
                 )}
               </tbody>
             </Table>
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-center mt-3">
+                <Pagination>
+                  <Pagination.Prev
+                    disabled={page <= 1}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page > 1) setPage((p) => p - 1);
+                    }}
+                  />
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => {
+                      const delta = 2;
+                      return p === 1 || p === totalPages || (p >= page - delta && p <= page + delta);
+                    })
+                    .map((p, idx, arr) => (
+                      <React.Fragment key={p}>
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <Pagination.Ellipsis disabled />
+                        )}
+                        <Pagination.Item
+                          active={p === page}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(p);
+                          }}
+                        >
+                          {p}
+                        </Pagination.Item>
+                      </React.Fragment>
+                    ))}
+                  <Pagination.Next
+                    disabled={page >= totalPages}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (page < totalPages) setPage((p) => p + 1);
+                    }}
+                  />
+                </Pagination>
+              </div>
+            )}
+            </>
           )}
         </Card.Body>
       </Card>
