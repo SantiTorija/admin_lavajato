@@ -51,6 +51,13 @@ const OrderDetailsModal = ({
   const [selectedServiceId, setSelectedServiceId] = useState(
     eventDetails?.serviceId ? String(eventDetails.serviceId) : ""
   );
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState(
+    eventDetails?.orderStatus || "activa"
+  );
+  const [currentOrderStatus, setCurrentOrderStatus] = useState(
+    eventDetails?.orderStatus || "activa"
+  );
 
   const effectiveServiceId =
     isEditingService && selectedServiceId
@@ -86,6 +93,9 @@ const OrderDetailsModal = ({
         eventDetails?.serviceId ? String(eventDetails.serviceId) : ""
       );
       setCurrentServiceId(eventDetails?.serviceId ?? null);
+      setIsEditingStatus(false);
+      setSelectedStatus(eventDetails?.orderStatus || "activa");
+      setCurrentOrderStatus(eventDetails?.orderStatus || "activa");
       setHasChanges(false);
     } else if (!show) {
       // Limpiar estados cuando el modal se cierra
@@ -95,6 +105,9 @@ const OrderDetailsModal = ({
       setIsEditingService(false);
       setSelectedCarTypeId("");
       setSelectedServiceId("");
+      setIsEditingStatus(false);
+      setSelectedStatus("activa");
+      setCurrentOrderStatus("activa");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -102,6 +115,7 @@ const OrderDetailsModal = ({
     eventDetails?.carTypeId,
     eventDetails?.serviceId,
     eventDetails?.orderId,
+    eventDetails?.orderStatus,
   ]);
 
   const { updateOrder, loading: updateLoading } = useUpdateOrder();
@@ -154,10 +168,10 @@ const OrderDetailsModal = ({
   };
 
   const handleStatusChange = async (newStatus) => {
-    if (!eventDetails?.orderId) return;
+    if (!eventDetails?.orderId) return false;
 
     if (newStatus === "cancelada") {
-      const result = await Swal.fire({
+      const swalResult = await Swal.fire({
         title: "¿Confirmar cancelación?",
         text: "Se liberará el horario y la reserva desaparecerá de la agenda.",
         icon: "warning",
@@ -167,11 +181,12 @@ const OrderDetailsModal = ({
         confirmButtonText: "Sí, cancelar",
         cancelButtonText: "No",
       });
-      if (!result.isConfirmed) return;
+      if (!swalResult.isConfirmed) return false;
     }
 
     const result = await updateOrderStatus(eventDetails.orderId, newStatus);
     if (result?.success) {
+      setCurrentOrderStatus(newStatus);
       toast.success("Estado actualizado");
       setHasChanges(true);
       refreshModalContent();
@@ -179,8 +194,10 @@ const OrderDetailsModal = ({
         onHide();
         if (onOrderUpdated) onOrderUpdated();
       }
+      return true;
     } else {
       toast.error(result?.error || "Error al actualizar estado");
+      return false;
     }
   };
 
@@ -321,25 +338,58 @@ const OrderDetailsModal = ({
             <div className="row">
               {eventDetails?.orderId && (
                 <div className="col-12 border border-primary rounded-3 p-3 mt-1">
-                  <h6 className="mb-2">Estado de la reserva</h6>
-                  <Form.Select
-                    value={eventDetails?.orderStatus || "activa"}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    disabled={statusLoading}
-                  >
-                    <option value="activa">
-                      {ORDER_STATUS_LABELS.activa}
-                    </option>
-                    <option value="completada">
-                      {ORDER_STATUS_LABELS.completada}
-                    </option>
-                    <option value="cancelada">
-                      {ORDER_STATUS_LABELS.cancelada}
-                    </option>
-                    <option value="faltó_sin_aviso">
-                      {ORDER_STATUS_LABELS["faltó_sin_aviso"]}
-                    </option>
-                  </Form.Select>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <h6 className="mb-0">Estado de la reserva</h6>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0"
+                      title={
+                        isEditingStatus ? "Confirmar" : "Editar estado"
+                      }
+                      onClick={async () => {
+                        if (!isEditingStatus) {
+                          setIsEditingStatus(true);
+                          setSelectedStatus(currentOrderStatus || "activa");
+                          return;
+                        }
+                        const result = await handleStatusChange(selectedStatus);
+                        if (result !== false) {
+                          setIsEditingStatus(false);
+                        }
+                      }}
+                      disabled={statusLoading}
+                    >
+                      {isEditingStatus ? (
+                        <FaCheck size={20} className="text-success" />
+                      ) : (
+                        <FaEdit size={20} className="text-primary" />
+                      )}
+                    </button>
+                  </div>
+                  {isEditingStatus ? (
+                    <Form.Select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      disabled={statusLoading}
+                    >
+                      <option value="activa">
+                        {ORDER_STATUS_LABELS.activa}
+                      </option>
+                      <option value="completada">
+                        {ORDER_STATUS_LABELS.completada}
+                      </option>
+                      <option value="cancelada">
+                        {ORDER_STATUS_LABELS.cancelada}
+                      </option>
+                      <option value="faltó_sin_aviso">
+                        {ORDER_STATUS_LABELS["faltó_sin_aviso"]}
+                      </option>
+                    </Form.Select>
+                  ) : (
+                    <p className="mb-0">
+                      {ORDER_STATUS_LABELS[currentOrderStatus] || currentOrderStatus}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
