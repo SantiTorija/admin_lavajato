@@ -25,7 +25,11 @@ const NewOrderModal = ({
   onOrderCreated,
 }) => {
   const { theme } = useTheme();
-  const { clients } = useFetchClients();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const { clients, refetch, loading: clientsLoading } = useFetchClients(searchQuery, 1, 50);
   const { services, carTypes, servicePrices } = useFetchServicesData();
   const { formatDate } = useFormatDate();
   const {
@@ -34,15 +38,13 @@ const NewOrderModal = ({
     error: orderError,
   } = useCreateOrder();
 
-  // Debug: verificar tema activo
+  // Resetear búsqueda al cerrar el modal
   useEffect(() => {
-    console.log("🔍 DEBUG - Tema actual:", theme);
-    console.log("🔍 DEBUG - Clases del body:", document.body.className);
-  }, [theme]);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [showDropdown, setShowDropdown] = useState(false);
+    if (!show) {
+      setSearchQuery("");
+      setShowDropdown(false);
+    }
+  }, [show]);
   const [selectedCarType, setSelectedCarType] = useState("");
   const [selectedService, setSelectedService] = useState("");
   const [total, setTotal] = useState("");
@@ -124,20 +126,19 @@ const NewOrderModal = ({
   };
 
   const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setShowDropdown(value.length > 0);
+    setSearchTerm(e.target.value);
   };
 
-  const handleFocus = () => {
-    if (searchTerm.length > 0) {
-      setShowDropdown(true);
-    }
-  };
-
-  const handleSearchClick = () => {
-    // Al hacer click en la lupa, mostrar todos los clientes
+  const executeSearch = () => {
+    setSearchQuery(searchTerm.trim());
     setShowDropdown(true);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      executeSearch();
+    }
   };
 
   const selectClient = (client) => {
@@ -162,13 +163,8 @@ const NewOrderModal = ({
   };
 
   const handleClientCreated = (newClient) => {
-    // Seleccionar automáticamente el nuevo cliente creado
     selectClient(newClient);
-
-    // Refrescar la lista de clientes
-    if (clients && typeof clients.refetch === "function") {
-      clients.refetch();
-    }
+    refetch();
   };
 
   const handleCarTypeChange = (e) => {
@@ -197,11 +193,7 @@ const NewOrderModal = ({
     }
   }, [selectedCarType, selectedService, servicePrices]);
 
-  // Filtrar clientes basado en searchTerm
-  const filteredClients = clients.filter((client) => {
-    const fullName = `${client.firstname} ${client.lastname}`.toLowerCase();
-    return fullName.includes(searchTerm.toLowerCase());
-  });
+  // Los clientes vienen filtrados del API según searchQuery
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -259,22 +251,23 @@ const NewOrderModal = ({
                 <InputGroup>
                   <Form.Control
                     type="text"
-                    placeholder="Buscar cliente..."
+                    placeholder="Buscar cliente (Enter o clic en lupa)"
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    onFocus={handleFocus}
+                    onKeyDown={handleSearchKeyDown}
                     className={styles.searchInput}
                   />
                   <InputGroup.Text
-                    onClick={handleSearchClick}
+                    onClick={executeSearch}
                     style={{ cursor: "pointer" }}
+                    title="Buscar"
                   >
                     <FaSearch />
                   </InputGroup.Text>
                 </InputGroup>
 
                 {/* Dropdown de opciones */}
-                {showDropdown && filteredClients.length > 0 && (
+                {showDropdown && clients.length > 0 && (
                   <div
                     className={styles.dropdownOptions}
                     style={{
@@ -283,7 +276,7 @@ const NewOrderModal = ({
                       color: theme === "dark" ? "#f8f9fa" : "inherit",
                     }}
                   >
-                    {filteredClients.map((client) => (
+                    {clients.map((client) => (
                       <div
                         key={client.id}
                         className={styles.dropdownOption}
@@ -312,9 +305,21 @@ const NewOrderModal = ({
                   </div>
                 )}
 
+                {showDropdown && clientsLoading && (
+                  <div
+                    className={styles.noResults}
+                    style={{
+                      background: theme === "dark" ? "#212529" : "white",
+                      borderColor: theme === "dark" ? "#495057" : "#dee2e6",
+                      color: theme === "dark" ? "#adb5bd" : "#6c757d",
+                    }}
+                  >
+                    Buscando...
+                  </div>
+                )}
                 {showDropdown &&
-                  filteredClients.length === 0 &&
-                  searchTerm.length > 0 && (
+                  !clientsLoading &&
+                  clients.length === 0 && (
                     <div
                       className={styles.noResults}
                       style={{

@@ -24,30 +24,30 @@ const LIMIT_OPTIONS = [10, 20, 50];
 
 const Clientes = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const { clients, total, totalPages, loading, error, refetch } =
-    useFetchClients(debouncedSearchTerm, page, limit);
+    useFetchClients(searchQuery, page, limit);
   const { deleteClient, loading: deleteLoading } = useDeleteClient();
   const { theme } = useTheme();
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [showAddClientModal, setShowAddClientModal] = useState(false);
 
-  // Debounce para optimizar las búsquedas
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
+  const executeSearch = () => {
+    setSearchQuery(searchTerm.trim());
+    setPage(1);
+  };
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") executeSearch();
+  };
 
   // Reset a página 1 cuando cambia la búsqueda
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [searchQuery]);
 
   const handleLimitChange = (e) => {
     setLimit(Number(e.target.value));
@@ -147,15 +147,20 @@ const Clientes = () => {
       {/* Barra de búsqueda */}
       <div className={`mb-4 ${styles.searchContainer}`}>
         <InputGroup>
-          <InputGroup.Text>
-            <FaSearch />
-          </InputGroup.Text>
           <Form.Control
             type="text"
-            placeholder="Buscar por nombre, apellido, email o teléfono..."
+            placeholder="Buscar por nombre, apellido, email o teléfono (Enter o clic en lupa)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
           />
+          <Button
+            variant="outline-secondary"
+            onClick={executeSearch}
+            title="Buscar"
+          >
+            <FaSearch />
+          </Button>
         </InputGroup>
       </div>
       <Card>
@@ -164,115 +169,119 @@ const Clientes = () => {
           {error && <Alert variant="danger">Error al cargar clientes</Alert>}
           {!loading && !error && (
             <>
-            <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-              <span className="text-muted small">
-                Mostrando {startItem}-{endItem} de {total} clientes
-              </span>
-              <Form.Select
-                size="sm"
-                value={limit}
-                onChange={handleLimitChange}
-                style={{ width: "auto" }}
-              >
-                {LIMIT_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt} por página
-                  </option>
-                ))}
-              </Form.Select>
-            </div>
-            <Table hover responsive>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Apellido</th>
-                  <th>Teléfono</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.length === 0 ? (
+              <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <span className="text-muted small">
+                  Mostrando {startItem}-{endItem} de {total} clientes
+                </span>
+                <Form.Select
+                  size="sm"
+                  value={limit}
+                  onChange={handleLimitChange}
+                  style={{ width: "auto" }}
+                >
+                  {LIMIT_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt} por página
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+              <Table hover responsive striped>
+                <thead>
                   <tr>
-                    <td colSpan={4} className="text-center">
-                      No hay clientes registrados
-                    </td>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
                   </tr>
-                ) : (
-                  clients.map((cliente) => (
-                    <tr key={cliente.id}>
-                      <td>{cliente.firstname || "-"}</td>
-                      <td>{cliente.lastname || "-"}</td>
-                      <td>{cliente.telefono || cliente.phone || "-"}</td>
-                      <td>
-                        <div
-                          className="d-flex justify-content-around align-items-center"
-                          style={{ minWidth: 90 }}
-                        >
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            title="Editar"
-                            onClick={() => handleEditClient(cliente)}
-                          >
-                            <FaEdit />
-                          </Button>
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            title="Eliminar"
-                            onClick={() => handleDeleteClient(cliente)}
-                            disabled={deleteLoading}
-                          >
-                            <FaTrash />
-                          </Button>
-                        </div>
+                </thead>
+                <tbody>
+                  {clients.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center">
+                        No hay clientes registrados
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
-            {totalPages > 1 && (
-              <div className="d-flex justify-content-center mt-3">
-                <Pagination>
-                  <Pagination.Prev
-                    disabled={page <= 1}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (page > 1) setPage((p) => p - 1);
-                    }}
-                  />
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => {
-                      const delta = 2;
-                      return p === 1 || p === totalPages || (p >= page - delta && p <= page + delta);
-                    })
-                    .map((p, idx, arr) => (
-                      <React.Fragment key={p}>
-                        {idx > 0 && arr[idx - 1] !== p - 1 && (
-                          <Pagination.Ellipsis disabled />
-                        )}
-                        <Pagination.Item
-                          active={p === page}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setPage(p);
-                          }}
-                        >
-                          {p}
-                        </Pagination.Item>
-                      </React.Fragment>
-                    ))}
-                  <Pagination.Next
-                    disabled={page >= totalPages}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (page < totalPages) setPage((p) => p + 1);
-                    }}
-                  />
-                </Pagination>
-              </div>
-            )}
+                  ) : (
+                    clients.map((cliente) => (
+                      <tr key={cliente.id}>
+                        <td>{cliente.firstname || "-"}</td>
+                        <td>{cliente.lastname || "-"}</td>
+                        <td>{cliente.telefono || cliente.phone || "-"}</td>
+                        <td>
+                          <div
+                            className="d-flex justify-content-around align-items-center"
+                            style={{ minWidth: 90 }}
+                          >
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              title="Editar"
+                              onClick={() => handleEditClient(cliente)}
+                            >
+                              <FaEdit />
+                            </Button>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              title="Eliminar"
+                              onClick={() => handleDeleteClient(cliente)}
+                              disabled={deleteLoading}
+                            >
+                              <FaTrash />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-3">
+                  <Pagination>
+                    <Pagination.Prev
+                      disabled={page <= 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page > 1) setPage((p) => p - 1);
+                      }}
+                    />
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => {
+                        const delta = 2;
+                        return (
+                          p === 1 ||
+                          p === totalPages ||
+                          (p >= page - delta && p <= page + delta)
+                        );
+                      })
+                      .map((p, idx, arr) => (
+                        <React.Fragment key={p}>
+                          {idx > 0 && arr[idx - 1] !== p - 1 && (
+                            <Pagination.Ellipsis disabled />
+                          )}
+                          <Pagination.Item
+                            active={p === page}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPage(p);
+                            }}
+                          >
+                            {p}
+                          </Pagination.Item>
+                        </React.Fragment>
+                      ))}
+                    <Pagination.Next
+                      disabled={page >= totalPages}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (page < totalPages) setPage((p) => p + 1);
+                      }}
+                    />
+                  </Pagination>
+                </div>
+              )}
             </>
           )}
         </Card.Body>
