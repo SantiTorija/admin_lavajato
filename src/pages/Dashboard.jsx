@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useRef } from "react";
 import { useSelector } from "react-redux";
-import axios from "axios";
-import { Card, Container, Row, Col, Modal, Badge } from "react-bootstrap";
+import { Card, Container, Row, Col } from "react-bootstrap";
 import {
   AreaChart,
   Area,
@@ -18,6 +17,7 @@ import {
 } from "recharts";
 import useFetchDashboard from "../hooks/useFetchDashboard";
 import Loader from "../components/Loader";
+import DashboardCancellationModal from "../components/DashboardCancellationModal";
 import { useTheme } from "../context/ThemeContext";
 
 const COLORS = ["#0d6efd", "#198754", "#dc3545", "#ffc107", "#6f42c1"];
@@ -33,29 +33,6 @@ const tooltipStyle = (isDark) => ({
     : "0 2px 8px rgba(0,0,0,0.15)",
 });
 
-const formatCancelledAtUy = (iso) =>
-  iso
-    ? new Date(iso).toLocaleString("es-UY", {
-        timeZone: "America/Montevideo",
-        dateStyle: "short",
-        timeStyle: "short",
-      })
-    : "—";
-
-/** cart.date en YYYY-MM-DD + slot; mediodía local evita corrimiento de día al parsear */
-const formatTurnoUy = (dateStr, slot) => {
-  const datePart = dateStr
-    ? new Date(`${dateStr}T12:00:00`).toLocaleDateString("es-UY", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "—";
-  const slotPart = slot ? ` · ${slot}` : "";
-  return `${datePart}${slotPart}`;
-};
-
 /** Recharts: percent 0–1. Evita "0%" cuando el % real es mayor que 0 pero redondea a 0 entero */
 const formatPiePercent = (percent) => {
   if (percent == null || Number.isNaN(percent)) return "0%";
@@ -64,35 +41,16 @@ const formatPiePercent = (percent) => {
   return `${Math.round(pct)}%`;
 };
 
+/** Texto sobre SVG (Recharts) no siempre resuelve bien variables CSS; alineado a index.css body.theme-* */
+const pieChartLabelColor = (isDark) => (isDark ? "#f8f9fa" : "#181a1b");
+
 const Dashboard = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const token = useSelector((state) => state.auth.token);
   const api = import.meta.env.VITE_API_URL;
   const { data, loading, error } = useFetchDashboard();
-
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelScope, setCancelScope] = useState("today");
-  const [cancelRows, setCancelRows] = useState([]);
-  const [cancelLoading, setCancelLoading] = useState(false);
-
-  const openCancellationModal = async (scope) => {
-    setCancelScope(scope);
-    setShowCancelModal(true);
-    setCancelLoading(true);
-    setCancelRows([]);
-    try {
-      const res = await axios.get(`${api}/analytics/dashboard/cancellations`, {
-        params: { scope: scope === "week" ? "week" : "today" },
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCancelRows(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setCancelRows([]);
-    } finally {
-      setCancelLoading(false);
-    }
-  };
+  const cancellationModalRef = useRef(null);
 
   if (loading) return <Loader />;
   if (error) {
@@ -190,10 +148,10 @@ const Dashboard = () => {
             className="h-100 border-0 shadow-sm"
             role="button"
             tabIndex={0}
-            onClick={() => openCancellationModal("today")}
+            onClick={() => cancellationModalRef.current?.open("today")}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ")
-                openCancellationModal("today");
+                cancellationModalRef.current?.open("today");
             }}
             style={{ cursor: "pointer" }}
           >
@@ -211,10 +169,10 @@ const Dashboard = () => {
             className="h-100 border-0 shadow-sm"
             role="button"
             tabIndex={0}
-            onClick={() => openCancellationModal("week")}
+            onClick={() => cancellationModalRef.current?.open("week")}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ")
-                openCancellationModal("week");
+                cancellationModalRef.current?.open("week");
             }}
             style={{ cursor: "pointer" }}
           >
@@ -231,59 +189,7 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      <Modal
-        show={showCancelModal}
-        onHide={() => setShowCancelModal(false)}
-        centered
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Cancelaciones por clientes —{" "}
-            {cancelScope === "week" ? "turno esta semana" : "turno hoy "}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {cancelLoading && <p className="text-muted mb-0">Cargando…</p>}
-          {!cancelLoading && cancelRows.length === 0 && (
-            <p className="text-muted mb-0">
-              No hay cancelaciones en este período.
-            </p>
-          )}
-          {!cancelLoading &&
-            cancelRows.map((row, idx) => (
-              <div
-                key={`${row.firstname}-${row.lastname}-${row.cancelledAt}-${idx}`}
-                className="border rounded-3 p-3 mb-2"
-              >
-                <dl className="row mb-0 small">
-                  <dt className="col-sm-4 text-muted">Nombre</dt>
-                  <dd className="col-sm-8 mb-2">
-                    {row.firstname} {row.lastname}
-                  </dd>
-
-                  <dt className="col-sm-4 text-muted">Teléfono</dt>
-                  <dd className="col-sm-8 mb-2">{row.phone ?? "—"}</dd>
-
-                  <dt className="col-sm-4 text-muted">Turno</dt>
-                  <dd className="col-sm-8 mb-2">
-                    {formatTurnoUy(row.serviceDate, row.serviceSlot)}
-                  </dd>
-
-                  <dt className="col-sm-4 text-muted">Canceló</dt>
-                  <dd className="col-sm-8 mb-2">
-                    {formatCancelledAtUy(row.cancelledAt)}
-                    {row.sameDayCancel && (
-                      <Badge bg="info" className="ms-2">
-                        Mismo día que el turno
-                      </Badge>
-                    )}
-                  </dd>
-                </dl>
-              </div>
-            ))}
-        </Modal.Body>
-      </Modal>
+      <DashboardCancellationModal ref={cancellationModalRef} apiUrl={api} token={token} />
 
       {/* Charts Row 1 */}
       <Row className="g-3 mb-4">
@@ -350,21 +256,27 @@ const Dashboard = () => {
               <h6 className="mb-0">Órdenes por estado</h6>
             </Card.Header>
             <Card.Body>
-              <div className="dashboard-chart" style={{ height: 220 }}>
+              <div
+                className="dashboard-chart dashboard-chart-pie"
+                style={{ height: 200 }}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={ordersByStatus || []}
                       cx="50%"
                       cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
+                      innerRadius={48}
+                      outerRadius={76}
                       paddingAngle={2}
                       dataKey="value"
                       nameKey="name"
-                      label={({ name, percent }) =>
-                        `${name} ${formatPiePercent(percent)}`
-                      }
+                      label={({ percent }) => formatPiePercent(percent)}
+                      labelStyle={{
+                        fill: pieChartLabelColor(isDark),
+                        fontSize: 11,
+                        fontWeight: 600,
+                      }}
                     >
                       {(ordersByStatus || []).map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -385,6 +297,33 @@ const Dashboard = () => {
                     />
                   </PieChart>
                 </ResponsiveContainer>
+              </div>
+              <div
+                className="d-flex flex-wrap gap-3 justify-content-center align-items-center pt-2 px-1 small"
+                role="list"
+                aria-label="Leyenda órdenes por estado"
+              >
+                {(ordersByStatus || []).map((entry, i) => (
+                  <div
+                    key={`${entry.name}-${i}`}
+                    className="d-flex align-items-center gap-2"
+                    role="listitem"
+                    style={{ color: "var(--color-text)" }}
+                  >
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: 2,
+                        backgroundColor: COLORS[i % COLORS.length],
+                        flexShrink: 0,
+                        border: "1px solid var(--color-border)",
+                      }}
+                    />
+                    <span>{entry.name}</span>
+                  </div>
+                ))}
               </div>
             </Card.Body>
           </Card>

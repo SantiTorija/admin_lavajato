@@ -236,6 +236,11 @@ hr, .border, .border-top, .border-bottom, .border-start, .border-end {
   fill: var(--color-text) !important;
 }
 
+/* Donut: porcentajes en el borde (Recharts 3 / SVG y tema) */
+.dashboard-chart-pie svg text {
+  fill: var(--color-text) !important;
+}
+
 /* Mejoras visuales para FullCalendar en mobile */
 .fc .fc-toolbar-title {
   font-size: 1.1rem;
